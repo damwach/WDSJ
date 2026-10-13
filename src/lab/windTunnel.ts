@@ -33,7 +33,7 @@ export function sampleTunnel(settings: TunnelSettings) {
     bodyLean, vAngle: vHalfAngle,
   }, { density });
   const liftVertical = result.lift.y;
-  const dragLongitudinal = -result.drag.x;
+  const dragLongitudinal = speed === 0 ? 0 : -result.drag.x;
   return {
     ...result,
     liftVertical,
