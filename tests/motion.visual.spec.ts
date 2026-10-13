@@ -112,3 +112,40 @@ test('mouse buttons drive extension only in takeoff window', async ({ page }) =>
   expect(await page.evaluate(() => (window as any).SKYLIFT.sim.eccentricity)).toBeGreaterThan(0);
   expect(errors).toEqual([]);
 });
+
+test('the complete demonstration contacts the slope and continues on the ground', async ({ page }) => {
+  const errors=collectErrors(page);
+  await page.goto('http://localhost:5173');
+  await page.waitForFunction(()=>Boolean((window as any).SKYLIFT));
+  await page.getByRole('button',{name:'Pokaz techniki',exact:true}).click();
+  const result=await page.evaluate(()=>{
+    const app=(window as any).SKYLIFT;app.step(0);
+    for(let i=0;i<2000&&(app.sim.phase==='inrun'||app.sim.phase==='flight');i++)app.sim.step();
+    app.setCamera('athlete',true);app.step(0);
+    return {phase:app.sim.phase,time:app.sim.flightTime,distance:app.sim.resultDistance,impact:app.sim.impact};
+  });
+  expect(result.phase).toBe('landed');expect(result.time).toBeLessThan(6);expect(result.distance).toBeGreaterThan(40);expect(result.impact).toBeLessThan(5);
+  await expect(page.locator('#phase')).toContainText('Lądowanie');
+  await page.screenshot({path:'artifacts/07-landing.png'});
+  await page.evaluate(()=>{const app=(window as any).SKYLIFT;app.step(120);});
+  await expect(page.locator('#phase')).toContainText('Lądowanie');
+  expect(errors).toEqual([]);
+});
+
+test('real mouse movement with both buttons drives the leg actuator', async ({ page }) => {
+  const errors=collectErrors(page);
+  await page.goto('http://localhost:5173');await page.waitForFunction(()=>Boolean((window as any).SKYLIFT));
+  await page.mouse.move(900,550);
+  await page.evaluate(()=>{const a=(window as any).SKYLIFT;a.reset();a.sim.x=-6.5;a.sim.v=5;});
+  await page.mouse.down({button:'left'});await page.mouse.down({button:'right'});
+  // Deliver this native stroke in one event while contact is active. Later
+  // samples after takeoff belong to flight trim, not the leg actuator.
+  await page.mouse.move(900,490);
+  await expect.poll(()=>page.evaluate(()=>(window as any).SKYLIFT.sim.target)).toBeCloseTo(.5,5);
+  await expect.poll(()=>page.evaluate(()=>(window as any).SKYLIFT.sim.extension)).toBeGreaterThan(.05);
+  await page.mouse.up({button:'right'});await page.mouse.up({button:'left'});
+  const target=await page.evaluate(()=>(window as any).SKYLIFT.sim.target);
+  await page.mouse.move(900,430,{steps:3});
+  expect(await page.evaluate(()=>(window as any).SKYLIFT.sim.target)).toBeCloseTo(target,5);
+  expect(errors).toEqual([]);
+});

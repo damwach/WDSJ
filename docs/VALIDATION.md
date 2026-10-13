@@ -25,3 +25,13 @@ Nie wykonano: walidacji biomechaniki na motion capture, pomiarów sił, porówna
 - 4 testy Chromium: panorama z punktami startu/progu/zeskoku/wybiegu w kadrze, przejście przez wszystkie kamery i fazy ruchu, widok 390×844, gest obu przycisków, samodzielny dokument offline. Zrzuty zapisane w artifacts/; kontrole błędów konsoli włączone.
 - Referencja skijumping.io nie mogła zostać otwarta z powodu blokady sieci. Nie deklarujemy zgodności graficznej potwierdzonej porównaniem z referencją.
 - Aerodynamika i napęd wyprostu pozostają eksperymentalne; pełne lądowanie, ragdoll i kalibracja naukowa pozostają poza zakresem tej iteracji.
+
+## Iteracja fizyczna 0.6
+
+- Odtworzono nieskończony lot 0.5: po 60 s pokaz pozostawał w locie na x≈548 m, y≈142 m. Powód: grawitacja była podzielona przez masę.
+- 38 testów jednostkowych przeszło: poprawna grawitacja / brak zależności spadku od masy, energia i kierunki sił, momenty w próżni, wiatr, skończony kontakt, szybkość/tempo próbkowania gestu, granice siły i ramienia, anatomia oraz profil skoczni.
+- Pięć testów podstawowej ścieżki Chromium przeszło po końcowym buildzie: wszystkie kamery, najazd/wybicie/lot, panorama w telefonie, oba przyciski, lądowanie i wybieg, dokument offline. Zrzuty artifacts/01..07 oraz podgląd zawodnika obejrzano. Brak błędów konsoli w sprawdzanych przebiegach.
+- Typowy pokaz: 69.45 m, 3.275 s lotu, kontakt 2.16 m/s. Ten sam gest120px w0.18s daje większy impuls niż w0.6s; przykład przyx−5.5m: szybki~69m, wolny~56m. Agresywny200px/0.07s kończy się wcześniejszym upadkiem po destabilizacji momentem.
+- Build TypeScript/Vite i samodzielne HTML przechodzą. Nie ma sztucznego timera kończącego lot; wysokościowy test pozostaje w locie dopóki nie dotknie podłoża.
+- Równania, założenia oraz brak kalibracji eksperymentalnej opisano w PHYSICS.md. Kontakt punktowy i upadek pozostają uproszczone; parametrów nie należy traktować jako zwalidowanych naukowo.
+- Dodatkowy test Chromium z natywnym ruchem myszy oraz naciśnięciem lewego i prawego przycisku przeszedł. Sprawdza rzeczywiste zdarzenia, wyprost napędu i brak dalszego sterowania nogami po puszczeniu przycisków. Łącznie zweryfikowano 6 scenariuszy przeglądarkowych.

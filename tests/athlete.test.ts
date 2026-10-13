@@ -53,4 +53,41 @@ describe('athlete anatomical rig', () => {
     for (let i = 0; i < 120; i++) athlete.pose(i / 120, i / 120, 0);
     expect(collect()).toEqual(initial);
   });
+
+  it('keeps flight knees in flexion and separates trunk posture from ski incidence', () => {
+    const athlete = new Athlete();
+    for (let flight = 0; flight <= 1; flight += .02) {
+      athlete.pose(1, flight, 0);
+      for (const leg of athlete.legs) {
+        // In the sagittal plane the anatomical knee bends backward; crossing
+        // zero would produce the rigid/hyperextended flight legs seen in v0.5.
+        expect(leg.knee.rotation.z).toBeLessThan(0);
+        expect(leg.knee.rotation.z).toBeGreaterThan(-.5);
+      }
+    }
+    athlete.pose(1, 1, 0, { bodyLean: 1.05, skiPitch: .12 });
+    expect(athlete.torso.rotation.z).toBeCloseTo(-1.05, 10);
+    const pelvis = athlete.pelvis.position.clone();
+    const kneeFlex = athlete.legs[0].knee.rotation.z;
+    for (const leg of athlete.legs) expect(leg.ski.rotation.z).toBeCloseTo(.12, 10);
+    athlete.pose(1, 1, 0, { bodyLean: 1.40, skiPitch: -.08 });
+    expect(athlete.torso.rotation.z).toBeCloseTo(-1.40, 10);
+    expect(athlete.pelvis.position.distanceTo(pelvis)).toBe(0);
+    expect(athlete.legs[0].knee.rotation.z).toBe(kneeFlex);
+    for (const leg of athlete.legs) expect(leg.ski.rotation.z).toBeCloseTo(-.08, 10);
+    athlete.pose(1, 1, 1, { bodyLean: 1.4, skiPitch: .12 });
+    for (const leg of athlete.legs) expect(leg.ski.rotation.z).toBe(0);
+  });
+
+  it('uses an anatomical helmet envelope and one continuous goggle lens', () => {
+    const athlete = new Athlete();
+    athlete.pose(1, 0, 0);
+    const helmet = athlete.root.getObjectByName('helmet-shell') as T.Mesh;
+    helmet.geometry.computeBoundingBox();
+    const size = helmet.geometry.boundingBox!.getSize(new T.Vector3());
+    expect(size.z).toBeGreaterThan(.16);
+    expect(size.z).toBeLessThan(.20);
+    expect(size.y).toBeLessThan(.19);
+    expect(athlete.root.getObjectByName('continuous-goggle-lens')).toBeInstanceOf(T.Mesh);
+  });
 });

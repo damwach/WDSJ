@@ -8,3 +8,5 @@
 @media(max-width:600px){.session-panel{width:178px;padding:10px 13px 0}.session-panel h1{font-size:18px;margin:7px 0 4px}.session-meta{display:none}.phase-line{margin:10px -13px 0;padding:9px 13px}}
 
 .session-meta{display:none}.phase-line{margin-top:9px}
+
+#help-panel label{display:flex;justify-content:space-between;font-size:11px;color:#dce9f3}#help-panel input[type=range]{width:100%;accent-color:var(--accent);margin:12px 0}#help-panel small+small{margin-top:12px}

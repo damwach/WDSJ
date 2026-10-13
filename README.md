@@ -1,4 +1,4 @@
-# SKYLIFT 3D — 0.5 / iteracja 02
+# SKYLIFT 3D — 0.6 / iteracja 03
 
 Laboratorium najazdu i wybicia. Three.js + TypeScript + Vite; bez tekstur obrazkowych.
 
@@ -14,7 +14,7 @@ Do pracy lokalnej: sklonuj repozytorium, wejdź do jego folderu, uruchom `npm ci
 
 ## Uruchomienie bez instalacji
 
-Pobierz `artifacts/SKYLIFT-0.5.html` na swój komputer i otwórz go w Chrome lub Edge. Plik zawiera cały kod, Three.js i style. Działa bez serwera, internetu i Node.js. Kliknij „Pokaz techniki”, aby sprawdzić animację.
+Pobierz `artifacts/SKYLIFT-0.6.html` na swój komputer i otwórz go w Chrome lub Edge. Plik zawiera cały kod, Three.js i style. Działa bez serwera, internetu i Node.js. Kliknij „Pokaz techniki”, aby sprawdzić animację.
 
 Adres `localhost` dotyczy komputera, na którym działa przeglądarka. Serwer uruchomiony w środowisku chmurowym nie jest dostępny przez `localhost` na Twoim komputerze.
 
@@ -56,9 +56,9 @@ Pierwsza iteracja koncentruje się na proporcjach, stałych długościach segmen
 
 Fizyka jest deterministyczna dla identycznych próbek na identycznych krokach. Wejście na żywo trafia do najbliższego kroku, bez pełnego systemu replayu. Przerwy klatek powyżej 250 ms są ograniczane. Rendering nie interpoluje stanu między krokami.
 
-Wyprost jest ograniczonym napędem sprężysto-tłumiącym, a impuls normalny i moment bazują na parametrycznym ruchu środka masy. To nie pełna dynamika wieloczłonowa; brak ograniczeń siły mięśni i zmiennego momentu bezwładności. Wyprost nie oznacza niezależnie wyliczonej siły reakcji zeskoku. Duży gest zmienia moment, bez zaprogramowanego salta.
+Model sił używa pełnej grawitacji, prędkości względem wiatru oraz osobnych powierzchni aerodynamicznych ciała i nart. Napęd wyprostu ma ograniczone siły; moment wybicia wynika z mimośrodu reakcji. Lądowanie wynika z kontaktu nart z profilem i rozprasza normalną energię; po nim następuje wybieg. W locie ruch myszy w pionie zmienia sylwetkę, w bok balans; wiatr ustawisz pod przyciskiem „?”.
 
-Lot to model 2D sił z prostym bocznym balansem; wiatr jest parametrem modelu, bez UI. Współczynniki aerodynamiczne nie zostały skalibrowane eksperymentalnie. V jest animowany; nie ma niezależnej dynamiki nart. Kontakt i upadek to tymczasowa klasyfikacja i końcowa poza, bez telemarku, amortyzacji i ragdolla. Pełne lądowanie należy do następnej iteracji.
+Współczynniki aerodynamiczne, bezwładność i parametry mięśni są oszacowaniami. Nie wykonano walidacji tunelowej ani motion capture. Opis równań, naprawionego błędu grawitacji i ograniczeń: [docs/PHYSICS.md](docs/PHYSICS.md).
 
 Analiza poprzedniej wersji: [docs/REVIEW-v03.md](docs/REVIEW-v03.md).
 
@@ -71,3 +71,7 @@ Analiza poprzedniej wersji: [docs/REVIEW-v03.md](docs/REVIEW-v03.md).
 - Zeskok ma ciągłą wysokość i styczną; fizyka kontaktu używa tej samej stycznej co geometria. To profil projektowy, bez certyfikacji FIS.
 
 Referencja `skijumping.io` była niedostępna przez politykę sieci środowiska (CONNECT 403). Nie wykonano bezpośredniego porównania z jej grafiką. Sterowanie gestem obu przycisków, moment wybicia i stały krok 120 Hz zostały zachowane.
+
+## Zmiany 0.6
+
+Naprawa grawitacji dzielonej przez masę, fizyczny COM i napęd kontaktu, poprawiona szybkość gestu, ograniczone ramię reakcji, oddzielne powierzchnie ciała/nart i trójwymiarowy kierunek nośności, moment i tłumienie aerodynamiczne, przygotowanie do kontaktu/lądowanie/wybieg oraz bardziej anatomiczny kask, gogle i pozycja zawodnika. Próbny pokaz w spokojnym powietrzu: około 69 m, 3.3 s lotu, kontakt około 2.2 m/s. To wynik modelu, nie porównanie z pomiarem rzeczywistego skoku.

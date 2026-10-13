@@ -38,6 +38,8 @@ function startApp() {
   el('start').onclick = () => reset();
   el('demo').onclick = () => reset(true);
   el('pause').onclick = pause;
+  const wind=el('wind') as HTMLInputElement;
+  wind.oninput=()=>{sim.wind=Number(wind.value);el('wind-value').textContent=`${sim.wind.toFixed(1)} m/s`;};
   el('help').onclick = () => {
     el('help-panel').hidden = !el('help-panel').hidden;
     el('help').setAttribute('aria-expanded', String(!el('help-panel').hidden));
@@ -50,7 +52,7 @@ function startApp() {
     if (event.code === 'Space') { event.preventDefault(); pause(); }
   });
   const phases: Record<string, string> = {
-    ready: 'Gotowy do najazdu', inrun: 'Najazd', flight: 'Lot · przejście do V', landed: 'Kontakt ustany', fallen: 'Utrata stabilności',
+    ready: 'Gotowy do najazdu', inrun: 'Najazd', flight: 'Lot · przejście do V', landed: 'Lądowanie · wybieg', fallen: 'Upadek · ślizg', invalid: 'Błąd stanu symulacji',
   };
   function stats() {
     const inAir = sim.phase === 'flight';
@@ -58,15 +60,16 @@ function startApp() {
     const speed = sim.phase === 'ready' ? 0 : inAir ? Math.hypot(sim.vx, sim.vy) : sim.v;
     el('speed').innerHTML = `${(speed * 3.6).toFixed(1)} <small>km/h</small>`;
     el('distance-label').textContent = sim.x > 0 ? 'OD PROGU' : 'DO PROGU';
-    el('distance').innerHTML = `${Math.abs(sim.x).toFixed(1)} <small>m</small>`;
+    const completed=sim.phase==='landed'||sim.phase==='fallen';
+    el('distance').innerHTML = `${(completed?sim.resultDistance:Math.abs(sim.x)).toFixed(1)} <small>m</small>`;
     el('extension').style.width = `${sim.extension * 100}%`;
     el('extension-value').textContent = `${Math.round(sim.extension * 100)}%`;
     const windowOpen = sim.x > -8 && sim.phase === 'inrun';
     document.body.dataset.window = windowOpen ? 'takeoff' : '';
     el('notice').textContent = sim.phase === 'ready' ? 'Obejrzyj skocznię lub rozpocznij trening'
       : windowOpen ? 'TERAZ · oba przyciski + płynny ruch w górę'
-      : sim.phase === 'fallen' ? `Utrata stabilności · R, aby powtórzyć`
-      : sim.phase === 'landed' ? 'Przejazd zakończony · R, aby powtórzyć'
+      : sim.phase === 'fallen' ? `Upadek przy ${sim.resultDistance.toFixed(1)} m · kontakt ${sim.impact.toFixed(1)} m/s · R, aby powtórzyć`
+      : sim.phase === 'landed' ? `Lądowanie ${sim.resultDistance.toFixed(1)} m · kontakt ${sim.impact.toFixed(1)} m/s · R, aby powtórzyć`
       : inAir ? 'Lot · obserwuj pozycję ciała i nart'
       : sim.demo ? 'Pokaz techniki · automatyczne wybicie' : 'Zbliżasz się do progu · przygotuj wybicie';
   }
@@ -75,6 +78,7 @@ function startApp() {
     last = time;
     if (!paused) {
       for (const gesture of input.consume()) sim.gesture(gesture);
+      for (const motion of input.consumeMotion()) sim.trim(motion.up,motion.side);
       clock.advance(dt, () => sim.step());
     } else input.clear();
     view.render(sim);

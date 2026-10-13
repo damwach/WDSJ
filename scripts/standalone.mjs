@@ -20,5 +20,5 @@ html = html.replace(stylesheet[0], () => `<style>${css.replace(/<\/style/gi, '<\
 // Run after the page elements exist. Escape HTML raw-text terminators.
 html = html.replace('</body>', () => `<script type="module">${js.replace(/<\/script/gi, '<\\/script')}</script></body>`);
 await mkdir('artifacts', { recursive: true });
-await writeFile('artifacts/SKYLIFT-0.5.html', html);
-console.log('Standalone game: artifacts/SKYLIFT-0.5.html');
+await writeFile('artifacts/SKYLIFT-0.6.html', html);
+console.log('Standalone game: artifacts/SKYLIFT-0.6.html');

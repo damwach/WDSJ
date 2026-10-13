@@ -57,8 +57,7 @@ export class View {
     const now = performance.now();
     const dt = Math.min(.05, (now - this.previousTime) / 1000);
     this.previousTime = now;
-    const landingPose = s.phase === 'landed' ? 1 : 0;
-    this.athlete.pose(s.extension, s.flightTime, landingPose);
+    this.athlete.pose(s.extension, s.flightTime, s.landingPose, {bodyLean:s.bodyLean, skiPitch:s.skiPitch});
     this.athlete.root.position.set(s.x, s.y, s.z);
     this.athlete.root.rotation.set(s.phase === 'fallen' ? 1.1 : s.roll, 0, s.pitch);
 

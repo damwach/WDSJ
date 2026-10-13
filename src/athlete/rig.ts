@@ -8,9 +8,17 @@ const navy = new T.MeshStandardMaterial({ color: '#172d3c', roughness: .7 });
 const cream = new T.MeshStandardMaterial({ color: '#f5efda', roughness: .68 });
 const black = new T.MeshStandardMaterial({ color: '#101d27', roughness: .5 });
 const sole = new T.MeshStandardMaterial({ color: '#405260', roughness: .45, metalness: .2 });
-const visor = new T.MeshStandardMaterial({ color: '#31434c', roughness: .13, metalness: .7 });
+const visor = new T.MeshStandardMaterial({ color: '#334650', roughness: .12, metalness: .55 });
 const edge = new T.MeshStandardMaterial({ color: '#98b0b9', roughness: .35, metalness: .65 });
 const skin = new T.MeshStandardMaterial({ color: '#bc9479', roughness: .9 });
+
+/** Angles are relative to the root ski datum, in radians. */
+export type PoseControl = {
+  /** Forward inclination from +Y: positive brings the chest toward +X. */
+  bodyLean?: number;
+  /** Positive lifts the ski tips; the binding/boot rotates with the ski. */
+  skiPitch?: number;
+};
 
 function mesh(geometry: T.BufferGeometry, material: T.Material, parent: T.Object3D,
   x = 0, y = 0, z = 0) {
@@ -77,7 +85,7 @@ function skiGeometry() {
     const x = -1.06 + dimensions.ski * i / sections;
     const nose = T.MathUtils.smoothstep(x, 1.22, 1.54);
     const tail = T.MathUtils.smoothstep(-x, 1.01, 1.06);
-    const halfWidth = (.057 + .011 * Math.abs(x) / 1.54) * (1 - .75 * nose ** 4) * (1 - .3 * tail);
+    const halfWidth = (.056 + .0015 * Math.abs(x) / 1.54) * (1 - .75 * nose ** 4) * (1 - .3 * tail);
     const y = -ankleHeight + .105 * nose ** 2 + .012 * tail;
     positions.push(x, y, -halfWidth, x, y, halfWidth,
       x, y + .021, -halfWidth, x, y + .021, halfWidth);
@@ -101,11 +109,11 @@ function skiGeometry() {
 
 const skiShape = skiGeometry();
 const trunkProfile: Ring[] = [
-  { y: -.045, x: .115, z: .13 }, { y: .025, x: .123, z: .143 },
-  { y: .10, x: .109, z: .132 }, { y: .20, x: .118, z: .146 },
-  { y: .31, x: .137, z: .174 }, { y: .40, x: .14, z: .192 },
-  { y: .45, x: .122, z: .191 }, { y: .49, x: .097, z: .142 },
-  { y: .53, x: .063, z: .073 },
+  { y: -.045, x: .102, z: .128 }, { y: .025, x: .108, z: .136 },
+  { y: .10, x: .097, z: .129 }, { y: .20, x: .103, z: .139 },
+  { y: .31, x: .119, z: .160 }, { y: .40, x: .122, z: .178 },
+  { y: .45, x: .106, z: .176 }, { y: .49, x: .078, z: .126 },
+  { y: .53, x: .046, z: .056 },
 ];
 
 export class Athlete {
@@ -137,20 +145,70 @@ export class Athlete {
     for (const side of [-1, 1]) {
       mesh(tailoring(trunkProfile.slice(1, 6), 8, side * Math.PI / 2 - .19, .38, .003), navy, this.torso);
     }
-    mesh(new T.CylinderGeometry(.054, .062, .075, 24), navy, this.torso, 0, .55);
+    mesh(new T.CylinderGeometry(.043, .049, .065, 24), navy, this.torso, 0, .549);
 
-    this.head.position.set(.015, .57, 0);
+    this.head.name = 'helmet-and-head';
+    this.head.position.set(.006, .558, 0);
     this.torso.add(this.head);
-    // +X is forward. The neck counter-rotates so the athlete looks down the hill.
-    ellipsoid(this.head, skin, [.047, .064, 0], [.091, .112, .084]);
-    ellipsoid(this.head, cream, [-.027, .101, 0], [.113, .132, .110]);
-    ellipsoid(this.head, navy, [.058, -.009, 0], [.066, .012, .075]);
-    ellipsoid(this.head, visor, [.115, .098, 0], [.027, .031, .098]);
-    ellipsoid(this.head, cream, [.073, .145, 0], [.048, .012, .103]);
+    // One anatomically scaled skull/jaw, one fitted helmet shell and one curved
+    // goggle lens. The lens wraps around the face rather than forming two eyes.
+    mesh(tailoring([
+      { y: .019, x: .031, z: .040, offset: .029 },
+      { y: .042, x: .043, z: .052, offset: .034 },
+      { y: .068, x: .061, z: .064, offset: .025 },
+      { y: .102, x: .073, z: .070, offset: .014 },
+      { y: .152, x: .074, z: .071, offset: .007 },
+      { y: .192, x: .060, z: .059, offset: -.003 },
+      { y: .218, x: .010, z: .018, offset: -.012 },
+    ]), skin, this.head);
+    const helmetProfile: Ring[] = [
+      { y: .075, x: .073, z: .075, offset: -.016 },
+      { y: .105, x: .091, z: .087, offset: -.015 },
+      { y: .145, x: .099, z: .093, offset: -.016 },
+      { y: .185, x: .091, z: .085, offset: -.021 },
+      { y: .219, x: .069, z: .065, offset: -.025 },
+      { y: .239, x: .039, z: .037, offset: -.026 },
+      { y: .246, x: .001, z: .001, offset: -.026 },
+    ];
+    const helmet = mesh(tailoring(helmetProfile, 40), cream, this.head);
+    helmet.name = 'helmet-shell';
+    mesh(tailoring([
+      { y: .074, x: .073, z: .075, offset: -.016 },
+      { y: .084, x: .080, z: .080, offset: -.016 },
+    ], 40), navy, this.head);
+    // Dark frame lies behind a continuous, narrow cylindrical lens.
+    const goggle = mesh(tailoring([
+      { y: .094, x: .091, z: .077, offset: .017 },
+      { y: .117, x: .098, z: .088, offset: .012 },
+      { y: .146, x: .093, z: .085, offset: .012 },
+    ], 32, -1.44, 2.88, .003), black, this.head);
+    goggle.name = 'goggle-frame';
+    const lens = mesh(tailoring([
+      { y: .099, x: .092, z: .078, offset: .018 },
+      { y: .118, x: .098, z: .088, offset: .013 },
+      { y: .141, x: .094, z: .085, offset: .012 },
+    ], 32, -1.38, 2.76, .004), visor, this.head);
+    lens.name = 'continuous-goggle-lens';
+    mesh(tailoring([
+      { y: .066, x: .006, z: .010, offset: .096 },
+      { y: .078, x: .013, z: .012, offset: .098 },
+      { y: .095, x: .006, z: .009, offset: .089 },
+      { y: .105, x: .001, z: .002, offset: .085 },
+    ], 16), skin, this.head);
+    // An understated jaw/strap reads correctly at athlete-camera distance.
+    mesh(tailoring([
+      { y: .021, x: .032, z: .041, offset: .026 },
+      { y: .027, x: .035, z: .044, offset: .028 },
+    ], 32, -.85, 1.7, .001), navy, this.head);
     for (const side of [-1, 1]) {
-      ellipsoid(this.head, navy, [-.009, .07, side * .108], [.027, .032, .008]);
-      // Narrow helmet stripe and goggle strap are geometry, with no image textures.
-      mesh(new T.BoxGeometry(.12, .02, .008), suit, this.head, -.025, .115, side * .108);
+      // The strap conforms to the shell. No circular ear accessories.
+      mesh(tailoring(helmetProfile.slice(1, 3), 12,
+        side * Math.PI / 2 - .32, .64, .001), navy, this.head);
+      mesh(tailoring(helmetProfile.slice(2, 5), 12,
+        side * Math.PI / 2 - .075, .15, .0015), suit, this.head);
+      const strap = mesh(new T.BoxGeometry(.009, .061, .005), navy, this.head,
+        .006, .052, side * .059);
+      strap.rotation.z = -.20;
     }
 
     for (const side of [-1, 1]) {
@@ -190,46 +248,52 @@ export class Athlete {
       this.legs.push({ hip, knee, ankle, ski });
 
       const arm = new T.Group();
-      arm.position.set(0, .43, side * .185);
+      arm.position.set(-.005, .437, side * .173);
       this.torso.add(arm);
-      ellipsoid(arm, suit, [0, -.01, side * .009], [.068, .079, .065]);
-      limb(arm, .29, [[.036, .039], [.042, .045], [.050, .052], [.056, .053]], suit);
+      ellipsoid(arm, suit, [0, -.016, side * .004], [.052, .065, .052]);
+      limb(arm, .29, [[.031, .034], [.036, .039], [.045, .046], [.048, .048]], suit);
       const elbow = new T.Group();
       elbow.position.y = -.29;
       arm.add(elbow);
-      ellipsoid(elbow, suit, [0, 0, 0], [.039, .040, .041]);
-      limb(elbow, .25, [[.026, .030], [.034, .035], [.039, .041], [.036, .038]], suit);
-      mesh(new T.CylinderGeometry(.031, .028, .047, 16), navy, elbow, 0, -.239);
-      ellipsoid(elbow, black, [0, -.29, .004 * side], [.031, .066, .037]);
-      ellipsoid(elbow, black, [.029, -.28, -.014 * side], [.019, .037, .021]);
+      ellipsoid(elbow, suit, [0, 0, 0], [.033, .035, .036]);
+      limb(elbow, .25, [[.024, .027], [.030, .032], [.034, .036], [.031, .033]], suit);
+      mesh(new T.CylinderGeometry(.027, .025, .035, 16), navy, elbow, 0, -.240);
+      ellipsoid(elbow, black, [0, -.299, .003 * side], [.024, .058, .031]);
+      ellipsoid(elbow, black, [.023, -.284, -.012 * side], [.012, .027, .016]);
       this.arms.push(arm);
       this.elbows.push(elbow);
     }
     this.pose(0, 0, 0);
   }
 
-  pose(extension: number, flightSeconds: number, landing: number) {
+  pose(extension: number, flightSeconds: number, landing: number, controls?: PoseControl) {
     const e = T.MathUtils.clamp(extension, 0, 1);
-    const flight = T.MathUtils.smoothstep(flightSeconds, 0, .85);
+    // Passive flight setup follows the brief leg extension; it does not stretch
+    // the extension action over almost a second.
+    const flight = T.MathUtils.smoothstep(flightSeconds, .025, .40);
     const contact = T.MathUtils.smoothstep(landing, 0, 1);
     const mix = T.MathUtils.lerp;
     // Joint rotations describe motion; geometry and limb lengths never change.
-    const thigh = mix(mix(1.24, .14, e), -.94, flight);
-    const shin = mix(mix(-.53, -.10, e), -1.03, flight);
+    const thigh = mix(mix(1.24, .14, e), -.86, flight);
+    const shin = mix(mix(-.53, -.10, e), -1.10, flight);
     const upperLeg = mix(thigh, .63, contact);
     const lowerLeg = mix(shin, -.40, contact);
-    const trunk = mix(mix(mix(-1.17, -.40, e), -1.13, flight), -.35, contact);
+    const lean = T.MathUtils.clamp(controls?.bodyLean ?? 1.27, .4, 1.52);
+    const trunk = mix(mix(mix(-1.17, -.40, e), -lean, flight), -.35, contact);
     this.torso.rotation.z = trunk;
-    this.head.rotation.z = -trunk - .10;
+    // The athlete extends the neck but the face still points slightly down in
+    // flight, rather than staying unnaturally vertical through every pose.
+    this.head.rotation.z = -trunk - mix(.11, .39, flight * (1 - contact));
     this.arms.forEach((arm, i) => {
-      arm.rotation.z = mix(.05, -.04, flight) + .30 * contact;
-      arm.rotation.x = (i === 0 ? 1 : -1) * (.06 + .14 * contact);
-      this.elbows[i].rotation.z = -.12 + .07 * flight - .28 * contact;
+      arm.rotation.z = mix(.05, .09, flight) + .30 * contact;
+      arm.rotation.x = (i === 0 ? 1 : -1) * (.035 + .14 * contact);
+      this.elbows[i].rotation.z = -.12 + .025 * flight - .28 * contact;
     });
     this.legs.forEach(({ hip, knee, ankle, ski }, i) => {
       hip.rotation.z = upperLeg;
       knee.rotation.z = lowerLeg - upperLeg;
       ankle.rotation.z = -lowerLeg;
+      ski.rotation.z = T.MathUtils.clamp(controls?.skiPitch ?? 0, -.5, .5) * flight * (1 - contact);
       ski.rotation.y = (i === 0 ? 1 : -1) * .25 * flight * (1 - contact);
       this.cuffs[i].rotation.z = lowerLeg * .6;
     });
