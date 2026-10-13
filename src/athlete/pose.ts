@@ -17,6 +17,8 @@ const smooth = (v: number, a: number, b: number) => {
 export type PoseControl = {
   /** Inclination from +Y toward +X, independent of ski/root pitch. */
   bodyLean?: number;
+  /** Tunnel-only explicit V deployment, 0..1; undefined preserves game timing. */
+  vSpread?: number;
   /** Positive lifts the ski tips; boot and binding follow the ski. */
   skiPitch?: number;
   /** Ground presentation: absorption/recovery, not an extra flight impulse. */
@@ -77,7 +79,7 @@ export function jointPose(extension: number, flightSeconds = 0, landing = 0, con
   const legs = stride > 1e-9
     ? [legAt(hipX, hipY, stride), legAt(hipX, hipY, -stride)]
     : [{ upper, lower, ankleX: 0 }, { upper, lower, ankleX: 0 }];
-  const v = vDeployment(flightSeconds) * (1 - contact);
+  const v = (controls.vSpread === undefined ? vDeployment(flightSeconds) : clamp(controls.vSpread, 0, 1)) * (1 - contact);
   const shoulder = mix(mix(.05, -.04, chestDrive), .075, flight) + .34 * contact - .13 * recovery;
   return {
     hipX, hipY, legs, trunkLean, flight, contact, v,
