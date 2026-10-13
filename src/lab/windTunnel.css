@@ -1,6 +1,6 @@
 /* Aerodynamic laboratory is an independent, full-screen, scrollable workbench. */
 .wind-lab{position:fixed;inset:0;z-index:30;overflow:auto;padding:28px 22px 42px;
-  background:linear-gradient(135deg,#081722f8,#102b3cf8);color:#e9f4f9;
+  background:linear-gradient(135deg,#081722,#102b3c);color:#e9f4f9;
   font-family:Inter,Arial,sans-serif}
 .wind-lab[hidden]{display:none!important}
 .wind-shell{max-width:1260px;margin:auto}
@@ -30,6 +30,7 @@
 .wind-readings>div{padding:12px 10px;background:#071d2b80;border:1px solid #ffffff17;border-radius:4px}
 .wind-readings label{font-size:9px;color:#90adbf;display:block}
 .wind-readings strong{display:block;font-size:20px;font-weight:550;white-space:nowrap;margin-top:5px;font-variant-numeric:tabular-nums}
+.wind-readings [data-metric="alpha"]{font-size:17px}
 .wind-bottom{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(230px,.7fr);gap:22px;margin-top:22px}
 .wind-plot-box,.wind-actions{background:#152d3dbb;border:1px solid #ffffff1e;border-radius:8px;padding:18px}
 .wind-plot-title{font-size:12px;color:#eaf3f7;font-weight:600;margin-bottom:6px}
@@ -38,7 +39,7 @@
 .wind-actions{display:flex;flex-wrap:wrap;align-content:center;gap:10px}
 .wind-actions button{flex:1;font-size:11px}
 .wind-actions button:hover,.wind-close:hover{background:#325b72}
-.wind-compare{width:100%;font-size:11px;line-height:1.6;min-height:42px;color:#d3e3eb}
+.wind-compare{width:100%;font-size:11px;line-height:1.6;min-height:42px;color:#d3e3eb;white-space:pre-line}
 @media(max-width:900px){
  .wind-lab{padding:16px 12px 32px}
  .wind-columns,.wind-bottom{grid-template-columns:1fr;gap:12px;margin-top:13px}

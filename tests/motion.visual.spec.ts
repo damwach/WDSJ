@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { height, landing, hill } from '../src/world/hill';
+import { hill } from '../src/world/hill';
 import { dimensions } from '../src/athlete/rig';
 
 function collectErrors(page: Page) {

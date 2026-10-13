@@ -94,13 +94,13 @@ function startApp() {
         sim.step();
       });
     } else input.clear();
-    if (paused) view.render(sim);
+    if (paused || tunnel.isOpen) view.render(sim);
     else view.render(sim, previousRenderState, clock.accumulator / DT);
     stats();
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
-  Object.assign(window, { SKYLIFT: { sim, view, reset, pause, setCamera,
+  Object.assign(window, { SKYLIFT: { sim, view, tunnel, reset, pause, setCamera,
     step: (n: number) => {
       paused = true; el('pause').textContent = 'Wznów';
       for (let i = 0; i < n; i++) sim.step();

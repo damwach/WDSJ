@@ -19,12 +19,29 @@ export const DEFAULT_TUNNEL_SETTINGS: TunnelSettings = {
 const degToRad = Math.PI / 180;
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
 
+/** Limits of this diagnostic, not new physical limits in the flight solver. */
+export const TUNNEL_LIMITS = {
+  speed: [0, 60], incidenceDeg: [-25, 45], bodyLeanDeg: [50, 86],
+  vHalfAngleDeg: [0, 14.3], density: [0, 1.5],
+} as const satisfies Record<keyof TunnelSettings, readonly [number, number]>;
+
+export function normalizeTunnelSettings(settings: TunnelSettings): TunnelSettings {
+  const normalized = { ...settings };
+  for (const key of Object.keys(TUNNEL_LIMITS) as (keyof TunnelSettings)[]) {
+    const value = settings[key];
+    if (!Number.isFinite(value)) throw new RangeError(`Non-finite tunnel setting: ${key}`);
+    const [min, max] = TUNNEL_LIMITS[key];
+    normalized[key] = clamp(value, min, max);
+  }
+  return normalized;
+}
+
 export function sampleTunnel(settings: TunnelSettings) {
-  const speed = clamp(settings.speed, 0, 60);
-  const density = clamp(settings.density, 0, 1.5);
-  const incidence = clamp(settings.incidenceDeg, -25, 45) * degToRad;
-  const bodyLean = clamp(settings.bodyLeanDeg, 50, 86) * degToRad;
-  const vHalfAngle = clamp(settings.vHalfAngleDeg, 0, 14.3) * degToRad;
+  const normalized = normalizeTunnelSettings(settings);
+  const { speed, density } = normalized;
+  const incidence = normalized.incidenceDeg * degToRad;
+  const bodyLean = normalized.bodyLeanDeg * degToRad;
+  const vHalfAngle = normalized.vHalfAngleDeg * degToRad;
   // Shared with actual flight physics: no separate 'laboratory' coefficients.
   const result = aerodynamicForces({
     velocity: { x: speed, y: 0, z: 0 },
@@ -36,6 +53,7 @@ export function sampleTunnel(settings: TunnelSettings) {
   const dragLongitudinal = speed === 0 ? 0 : -result.drag.x;
   return {
     ...result,
+    settings: normalized,
     liftVertical,
     dragLongitudinal,
     // Signed vertical lift-to-drag for the specified horizontal flow.
@@ -44,10 +62,17 @@ export function sampleTunnel(settings: TunnelSettings) {
 }
 
 export function sweepIncidence(settings: TunnelSettings, min = -10, max = 30, step = 1) {
-  if (!(step > 0) || max < min || (max - min) / step > 400) throw new Error('Invalid tunnel sweep');
+  // Indexed sampling avoids accumulated angle drift. Reject non-finite bounds
+  // before the loop: Infinity/NaN previously permitted an unbounded sweep.
+  if (![min, max, step].every(Number.isFinite) || !(step > 0) || max < min
+    || min < TUNNEL_LIMITS.incidenceDeg[0] || max > TUNNEL_LIMITS.incidenceDeg[1]
+    || (max - min) / step > 400) throw new RangeError('Invalid tunnel sweep');
+  const normalized = normalizeTunnelSettings(settings);
   const rows: { angle: number; lift: number; drag: number; ratio: number }[] = [];
-  for (let a = min; a <= max + 1e-8; a += step) {
-    const measured = sampleTunnel({ ...settings, incidenceDeg: a });
+  const intervals = Math.floor((max - min) / step + 1e-9);
+  for (let i = 0; i <= intervals; i++) {
+    const a = Math.min(max, min + i * step);
+    const measured = sampleTunnel({ ...normalized, incidenceDeg: a });
     rows.push({ angle: a, lift: measured.liftVertical,
       drag: measured.dragLongitudinal, ratio: measured.ratio });
   }

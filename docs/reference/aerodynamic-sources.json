@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "auditDate": "2026-10-13",
+  "physicsBaselineCommit": "64498fee9577308656b978189cef7e9d6476c10d",
+  "issue": "https://github.com/damwach/WDSJ/issues/2",
+  "primaryMeasuredCoefficientTablesObtained": 0,
+  "coefficientsImportedIntoRuntime": false,
+  "sources": [
+    {
+      "doi": "10.1177/17543371221111625",
+      "issueSuppliedBibliography": {"authors": "Barnes et al.", "onlineYear": 2022, "configurationCount": 297},
+      "primaryPublicationInspected": false,
+      "primaryNumericDataObtained": false,
+      "independentlyVerifiedTitle": null,
+      "note": "Bibliographic claims originate from Issue #2; no article contents were retrieved."
+    },
+    {
+      "doi": "10.1007/BF02843971",
+      "issueSuppliedBibliography": {"authors": "Seo et al.", "year": 2004},
+      "primaryPublicationInspected": false,
+      "primaryNumericDataObtained": false,
+      "secondaryCitation": {
+        "url": "https://github.com/tcanabrava/computational_methods_ski/blob/db3aeb07cf2a27ad7ca4b2491217d2f92dd82d5f/README.typ",
+        "retrieval": "GitHub search and contents API, successful",
+        "authors": ["Seo K.", "Watanabe I.", "Murakami M."],
+        "title": "Aerodynamic force data for a V-style ski jumping flight",
+        "journal": "Sports Engineering",
+        "volume": 7,
+        "issue": 1,
+        "pages": "31–39",
+        "classification": "Unverified secondary bibliography, not an experimental dataset"
+      }
+    }
+  ],
+  "retrievalAttempts": [
+    {"url": "https://doi.org/10.1177/17543371221111625", "result": "Proxy CONNECT 403 Forbidden"},
+    {"url": "https://doi.org/10.1007/BF02843971", "result": "Proxy CONNECT 403 Forbidden"},
+    {"url": "https://api.crossref.org/works/10.1177/17543371221111625", "result": "Proxy CONNECT 403 Forbidden"},
+    {"url": "https://api.crossref.org/works/10.1007/BF02843971", "result": "Proxy CONNECT 403 Forbidden"},
+    {"url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=DOI%3A10.1177%2F17543371221111625&format=json", "result": "Proxy CONNECT 403 Forbidden"},
+    {"url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=DOI%3A10.1007%2FBF02843971&format=json", "result": "Proxy CONNECT 403 Forbidden"},
+    {"url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=10.1177%2F17543371221111625&retmode=json", "result": "Proxy CONNECT 403 Forbidden"},
+    {"url": "https://api.openalex.org/works/https://doi.org/10.1177/17543371221111625", "result": "Proxy CONNECT 403 Forbidden"},
+    {"url": "https://api.openalex.org/works/https://doi.org/10.1007/BF02843971", "result": "Proxy CONNECT 403 Forbidden"},
+    {"url": "https://api.semanticscholar.org/graph/v1/paper/DOI:10.1177/17543371221111625?fields=title,authors,year,openAccessPdf,url", "result": "Proxy CONNECT 403 Forbidden"}
+  ],
+  "scientificValidationStatus": "Not validated; no primary force/moment dataset or independent trajectory observations obtained",
+  "dataRequirements": ["Reference area", "Moment reference length", "Moment reference point", "Force axes and signs", "Ski/body/hip/V/yaw angle conventions", "Density and speed", "Equipment and body dimensions", "Experimental uncertainty", "License and extraction provenance"]
+}

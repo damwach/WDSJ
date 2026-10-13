@@ -19,15 +19,35 @@ consume this same helper.
 
 Controls: flow speed (m/s), ski incidence (degrees relative to horizontal wind),
 body lean (degrees measured from the local vertical), half-angle of V (degrees per
-ski), air density (kg/m³). Three.js previews the same angular pose and V-deployment
+ski), air density (kg/m³, including zero for a vacuum diagnostic). Three.js previews the same angular pose and V-deployment
 parameter that are fed to the coefficient function; it does not model flexible
 cloth, deformation or interference flow.
 
 Readouts: vertical lift [N], longitudinal drag [N], signed ratio of those
-components, pitching moment [N m], dynamic pressure [Pa], actual incidence
-[degrees]. Arrows visualize lift and drag. A polar sweep over -10..30 degrees
+components, pitching moment [N m], dynamic pressure [Pa], ski and trunk incidence
+[degrees]. The torso incidence is ski incidence + 90° minus body lean; its local
+vertical rotates with the ski/root. Arrows originate at the same approximate
+centre of mass used by the game. Their lengths are capped for legibility, so they
+are schematic rather than a common linear force scale. Flow tracers also run at
+a display speed of 8% of the specified stream speed. A polar sweep over -10..30 degrees
 is calculated with the *same* aerodynamic function; CSV export and A/B comparison
-are available.
+are available. The plot includes a signed L/D axis, zero line and current setting.
+A/B slots preserve the complete settings as well as the resulting forces. CSV
+rows include flow speed, lean, V half-angle and density, making the curve's input
+conditions reproducible.
+
+For the stationary specimen the relative velocity used by the solver is
+`u = (speed, 0, 0)`: the displayed air passes from the ski tips toward the tail,
+in the -X direction. `q = rho * speed² / 2`; no gravity or contact forces belong
+in this steady aerodynamic measurement. Vertical lift is `lift.y`, longitudinal
+drag is `-drag.x`, and signed L/D is their ratio. At zero speed or zero density,
+all forces and the moment vanish. The UI displays **—** for L/D when drag is
+zero, and both incidence angles are undefined at zero flow. JSON helper results
+retain the documented numeric ratio convention of zero for that undefined case.
+
+The specimen is suspended above the display floor and camera distance is fitted
+to its bounds when angles or viewport size change. This presentation translation
+does not change any force or gameplay state.
 
 Important: **peak L/D is not an ideal flight posture**. A real jump is a dynamic
 optimization of lift, drag, controllability, stability, takeoff energy, and safe
@@ -36,14 +56,15 @@ landing. Treat ratios as diagnostics, not evidence of scientific accuracy.
 ## Known shortcomings inherited from the current flight model
 
 - Single reduced body + pair of ski plates: no validated athlete/suit/ski polars.
-- V deployment mainly scales aerodynamic magnitudes instead of modifying full
+- V deployment currently scales lift, without a corresponding V-dependent drag
+  or moment law, instead of modifying full
   interference, 3D side force and moment curves. Real V-effects may be different.
 - An estimated trim moment: actual derivative dCm/dalpha, damping and stability
   have not been measured.
 - Only one steady uniform, horizontal flow case here. No turbulence, gust
   spectrum, boundary layer, head/side yaw sweep, rotational wind-tunnel test, or
   force feedback on individual articulated body segments.
-- Sketch pose's V-open override is strictly presentation/lab-only; ordinary
+- The pose's V-open override is strictly presentation/lab-only; ordinary
   flight deployment and gameplay have not been changed.
 
 ## Validating without making the game less playable
@@ -58,12 +79,24 @@ landing. Treat ratios as diagnostics, not evidence of scientific accuracy.
    stability and recovery against sample disturbances.
 5. Keep **simulation realism**, **input response**, and **visual animation**
    independent. Give players forgiving control ranges without inventing forces.
-6. Add training challenges and replay only after calibration, so they do not
-   reward exploiting known aerodynamic approximations.
+6. Use replay and comparative scenarios to diagnose the current model. Label
+   numerical repeatability separately from experimental calibration; defer
+   claims about real-world optimal technique until independent validation.
 
 ## Developer checks
 
-`npm test` (including `tests/wind-tunnel.test.ts`), `npm run build`, and
-`npm run test:visual` in a Chromium environment with WebGL. For the new UI,
-check opening/closing the lab, live values and pose, resizing, keyboard focus,
-returning to an interrupted jump, and CSV data. Review mobile layout manually.
+`npm test` (including nine cases in `tests/wind-tunnel.test.ts`), `npm run build`,
+and `npm run test:visual` in a Chromium environment with WebGL. Four focused
+browser cases check all sliders against the rendered skeleton and shared solver,
+unchanged interrupted jump state, zero-flow tracers, a single animation loop
+after rapid reopen, saved A/B inputs, CSV round-trip, and the complete specimen
+on a 390×844 portrait viewport. They also collect page and console errors.
+
+API calls reject non-finite settings. Finite values are bounded explicitly and
+the normalized settings are returned with the sample. Polar sweeps reject
+non-finite bounds, angles outside the diagnostic range, non-positive steps and
+more than 400 intervals; indexed sampling avoids accumulated angle drift.
+
+Screenshots: `artifacts/tunnel-desktop.png`, `artifacts/tunnel-mobile.png` and
+`artifacts/tunnel-mobile-controls.png`. These are visual review artifacts,
+not evidence that the estimated aerodynamic coefficients are physically valid.

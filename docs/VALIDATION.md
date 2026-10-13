@@ -57,3 +57,13 @@ Nie wykonano: walidacji biomechaniki na motion capture, pomiarów sił, porówna
 - Powierzchnia ciała została zmierzona z rzutu siatki: 0.488704/0.489008/0.489100m² przy kroku 4/2/1mm. Do sił przyjęto 0.489m², małe wydłużenie powierzchni i zmienione oszacowania trymu/tłumienia. Bez kalibracji eksperymentalnej; PHYSICS.md opisuje założenia.
 - Build TypeScript/Vite/Pages i samodzielny HTML 0.8 przechodzą. Dokument offline działa bez żądań HTTP. Gest obu przycisków nadal napędza wybicie.
 - Podane wielkości nie wyznaczają unikalnej krzywej: brak βS/b2, niespójne h/n, rozstaw belek i rL/l1/l2. Przyjęte interpolacje i priorytety danych są jawne w HILL-HS140.md; nie deklarujemy dokładnej reprodukcji pomiaru ani certyfikacji modelu gry.
+
+## 0.9 — przegląd PR #1 / tunel
+
+Naprawiono zaokrąglenie gęstości domyślnej 1.225 → 1.23, przepływ znaczników przy zerowej prędkości, dublowanie pętli po szybkim ponownym otwarciu, niepoprawne wartości API, brak skali wykresu i ukrywanie nart przez podłogę. CSV zawiera komplet warunków, porównanie A/B zachowuje pozycje, L/D bez oporu jest oznaczane jako nieokreślone. Podgląd, szkielet i współdzielony moduł aerodynamiki są zgodne na końcach zakresów suwaków.
+
+Testy Chromium porównują widoczne kąty tułowia i obu nart z parametrami obliczeń, sprawdzają cały model w kadrze i nad podłogą, zerowy przepływ, pojedynczą pętlę RAF, niezmieniony stan przerwanego skoku, eksport CSV oraz ekran 390×844. Zrzuty: `tunnel-desktop.png`, `tunnel-mobile.png`, `tunnel-mobile-controls.png`. Geometria HS140 i współczynniki sił pozostają jak w 0.8.
+
+CI Deno zastąpiono kontrolą Node/TypeScript/Vitest/Playwright, po odtworzeniu 63 diagnostyk lintera na jego historycznym commicie. Rzeczywiste dwa zbędne importy usunięto. Dokładny opis i wyniki dostępności źródeł: [CI.md](CI.md), [AERODYNAMIC-AUDIT.md](AERODYNAMIC-AUDIT.md).
+
+Wynik lokalny: build TypeScript/standalone poprawny, **61/61 testów jednostkowych i 14/14 testów Chromium/WebGL**. Testy tunelu nie wykryły błędów strony ani konsoli. Sprawdzono zrzuty desktop i telefon. To weryfikacja programu, nie walidacja aerodynamiczna.
