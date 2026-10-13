@@ -5,6 +5,36 @@ import type { Simulation } from '../physics/simulation';
 
 export type CameraMode = 'overview' | 'broadcast' | 'athlete';
 
+/** A presentation-only copy. The renderer never writes back into the simulation. */
+export type RenderState = Pick<Simulation,
+  'x' | 'y' | 'z' | 'pitch' | 'roll' | 'extension' | 'flightTime' |
+  'landingPose' | 'bodyLean' | 'skiPitch' | 'aftermathTime' | 'time' | 'phase'>;
+
+export function captureRenderState(s: Simulation): RenderState {
+  return {
+    x: s.x, y: s.y, z: s.z, pitch: s.pitch, roll: s.roll,
+    extension: s.extension, flightTime: s.flightTime, landingPose: s.landingPose,
+    bodyLean: s.bodyLean, skiPitch: s.skiPitch, aftermathTime: s.aftermathTime,
+    time: s.time, phase: s.phase,
+  };
+}
+
+function interpolateState(current: RenderState, previous: RenderState | undefined, alpha: number): RenderState {
+  // Resets and replay seeks are cuts. Never blend an old jump into a new one.
+  if (!previous || previous.time > current.time || current.time - previous.time > .02 ||
+    Math.hypot(current.x - previous.x, current.y - previous.y, current.z - previous.z) > 30) return current;
+  const t = T.MathUtils.clamp(alpha, 0, 1);
+  const mix = (key: keyof Omit<RenderState, 'phase'>) => T.MathUtils.lerp(previous[key], current[key], t);
+  const angle = (key: 'pitch' | 'roll' | 'bodyLean' | 'skiPitch') => previous[key] +
+    Math.atan2(Math.sin(current[key] - previous[key]), Math.cos(current[key] - previous[key])) * t;
+  return {
+    x: mix('x'), y: mix('y'), z: mix('z'), pitch: angle('pitch'), roll: angle('roll'),
+    extension: mix('extension'), flightTime: mix('flightTime'), landingPose: mix('landingPose'),
+    bodyLean: angle('bodyLean'), skiPitch: angle('skiPitch'), aftermathTime: mix('aftermathTime'),
+    time: mix('time'), phase: current.phase,
+  };
+}
+
 export class View {
   renderer: T.WebGLRenderer;
   scene = new T.Scene();
@@ -13,6 +43,7 @@ export class View {
   mode: CameraMode = 'overview';
   private sun: T.DirectionalLight;
   private look = new T.Vector3();
+  private trackedPosition = new T.Vector3();
   private settled = false;
   private previousTime = performance.now();
 
@@ -53,13 +84,22 @@ export class View {
     this.camera.updateProjectionMatrix();
   }
 
-  render(s: Simulation) {
+  /** The one-argument path stays exact for paused poses, replay tools and tests. */
+  render(sim: Simulation, previous?: RenderState, alpha = 1) {
+    const s = interpolateState(captureRenderState(sim), previous, alpha);
     const now = performance.now();
     const dt = Math.min(.05, (now - this.previousTime) / 1000);
     this.previousTime = now;
-    this.athlete.pose(s.extension, s.flightTime, s.landingPose, {bodyLean:s.bodyLean, skiPitch:s.skiPitch});
+    const grounded = s.phase === 'landed' || s.phase === 'fallen';
+    this.athlete.pose(s.extension, s.flightTime, s.landingPose, {
+      bodyLean: s.bodyLean, skiPitch: s.skiPitch,
+      groundedSeconds: grounded ? s.aftermathTime : undefined,
+      impactSpeed: sim.impact, fallen: s.phase === 'fallen',
+    });
     this.athlete.root.position.set(s.x, s.y, s.z);
-    this.athlete.root.rotation.set(s.phase === 'fallen' ? 1.1 : s.roll, 0, s.pitch);
+    const fallBlend = T.MathUtils.smoothstep(s.aftermathTime, 0, .35);
+    const fallenRoll = T.MathUtils.lerp(s.roll, s.roll < 0 ? -1.1 : 1.1, fallBlend);
+    this.athlete.root.rotation.set(s.phase === 'fallen' ? fallenRoll : s.roll, 0, s.pitch);
 
     const target = new T.Vector3();
     const eye = new T.Vector3();
@@ -70,7 +110,9 @@ export class View {
       eye.copy(target).add(portrait ? new T.Vector3(370, 170, 130) : new T.Vector3(86, 70, 246));
     } else if (this.mode === 'athlete') {
       target.set(s.x + .35, s.y + .7, s.z);
-      eye.copy(target).add(new T.Vector3(2.9, 2.6, 6.1));
+      // A closer lateral position shows joint motion while the sightline to the
+      // boots still clears the near-side table guardrail.
+      eye.copy(target).add(new T.Vector3(1.3, 1.65, 4.1));
     } else {
       // A consistent lateral camera keeps the upcoming table/landing in frame.
       const lead = s.phase === 'flight' ? 5 : 3.8;
@@ -81,6 +123,15 @@ export class View {
     const fog = this.scene.fog as T.Fog;
     fog.near = this.mode === 'overview' ? 550 : 160;
     fog.far = this.mode === 'overview' ? 1250 : 900;
+    if (this.settled && this.mode !== 'overview') {
+      // Carry tracking cameras with the athlete before easing their framing.
+      // Damping absolute world positions would leave a fast skier metres ahead
+      // of the close-up, even though both eye and look-at appeared smooth.
+      const motion = new T.Vector3(s.x, s.y, s.z).sub(this.trackedPosition);
+      this.camera.position.add(motion);
+      this.look.add(motion);
+    }
+    this.trackedPosition.set(s.x, s.y, s.z);
     const blend = this.settled ? 1 - Math.exp(-dt * 5.5) : 1;
     this.camera.position.lerp(eye, blend);
     this.look.lerp(target, blend);

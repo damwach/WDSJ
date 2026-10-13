@@ -1,7 +1,7 @@
 import './style.css';
-import { Simulation, FixedClock } from './physics/simulation';
+import { Simulation, FixedClock, DT } from './physics/simulation';
 import { GestureInput } from './input/gesture';
-import { View, type CameraMode } from './render/scene';
+import { View, captureRenderState, type CameraMode } from './render/scene';
 
 const el = (id: string) => document.getElementById(id)!;
 const canvas = el('scene') as HTMLCanvasElement;
@@ -13,6 +13,7 @@ let last = 0;
 
 function startApp() {
   const view = new View(canvas);
+  let previousRenderState = captureRenderState(sim);
   const cameras = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-camera]'));
   const modes: CameraMode[] = ['overview', 'broadcast', 'athlete'];
   function setCamera(mode: CameraMode, immediate = false) {
@@ -25,11 +26,12 @@ function startApp() {
   }
   function reset(demo = false) {
     sim.reset(demo);
+    previousRenderState = captureRenderState(sim);
     input.clear();
     clock.accumulator = 0;
     paused = false;
     el('pause').textContent = 'Pauza';
-    setCamera('broadcast');
+    setCamera('broadcast', true);
   }
   function pause() {
     paused = !paused;
@@ -79,15 +81,25 @@ function startApp() {
     if (!paused) {
       for (const gesture of input.consume()) sim.gesture(gesture);
       for (const motion of input.consumeMotion()) sim.trim(motion.up,motion.side);
-      clock.advance(dt, () => sim.step());
+      clock.advance(dt, () => {
+        previousRenderState = captureRenderState(sim);
+        sim.step();
+      });
     } else input.clear();
-    view.render(sim);
+    if (paused) view.render(sim);
+    else view.render(sim, previousRenderState, clock.accumulator / DT);
     stats();
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
   Object.assign(window, { SKYLIFT: { sim, view, reset, pause, setCamera,
-    step: (n: number) => { paused = true; el('pause').textContent = 'Wznów'; for (let i = 0; i < n; i++) sim.step(); view.render(sim); stats(); },
+    step: (n: number) => {
+      paused = true; el('pause').textContent = 'Wznów';
+      for (let i = 0; i < n; i++) sim.step();
+      previousRenderState = captureRenderState(sim);
+      clock.accumulator = 0;
+      view.render(sim); stats();
+    },
   } });
 }
 try { startApp(); } catch (error) {

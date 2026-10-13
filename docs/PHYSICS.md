@@ -1,4 +1,4 @@
-# Model fizyczny 0.6
+# Model fizyczny 0.7
 
 ## Naprawiony błąd i odtworzenie
 
@@ -25,6 +25,8 @@ W spokojnym powietrzu siła nośna nie wykonuje pracy translacyjnej, a opór odb
 
 `src/physics/biomechanics.ts` odtwarza dwuwymiarową kinematykę stałych odcinków i przybliżonego rozkładu mas segmentów (70 kg ciało / 8 kg sprzęt przy domyślnej masie 78 kg). Masa i gęstość są konfigurowalne. Sterowana wysokość COM jest mapowana odwrotnie na wyprost nóg.
 
+Od 0.7 kinematyka jest współdzielona w `src/athlete/pose.ts`, a nie powielona w renderingu i obliczeniach masy. Napęd kolan poprzedza biodra i tułów; wysokość COM nadal rośnie monotonicznie. Siły aerodynamiczne używają aktualnego pochylenia tułowia i otwarcia V podczas przejścia, zgodnych z widoczną pozą. Czas przejścia jest założeniem animacyjnym, nie pomiarem zawodnika.
+
 Przy kontakcie normalna reakcja wynosi `N = m(g_n + v² kappa + h'')`. Napęd nóg steruje docelową prędkością i wysokością wyprostu, z ograniczeniem reakcji do 3.4 ciężaru ciała. Utrata reakcji lub osiągnięcie końca progu przenosi rzeczywistą prędkość COM do lotu. Impuls to `m delta_v_n`, praca napędu jest całkowana. Dalszy wyprost w powietrzu zmienia pozycję segmentów względem COM i nie dodaje siły zewnętrznej.
 
 Próbki gestu zapisują przemieszczenie i rzeczywisty odstęp czasu. Sumowana długość / sumowany czas wyznaczają średnią szybkość; nie jest używana wyłącznie prędkość ostatniego zdarzenia ani minimum 8 ms. Długość gestu ustala cel wyprostu, szybkość ogranicza tempo napędu, położenie w najazdzie określa dostępny czas kontaktu, ruch boczny przesuwa linię reakcji. Zbyt szybki/długi ruch zwiększa mimośród w granicach geometrii ciała (ramię najwyżej 18 cm); `M = N r` generuje prędkość kątową. Nie ma zaprogramowanego salta ani nieograniczonego ramienia od ekstremalnej myszy.
@@ -32,6 +34,8 @@ Próbki gestu zapisują przemieszczenie i rzeczywisty odstęp czasu. Sumowana d�
 ## Lądowanie
 
 Kontakt jest pierwszym przecięciem punktu odniesienia nart z profilem, interpolowanym wewnątrz kroku. Prędkość normalna jest liczona względem lokalnej stycznej. Normalna energia jest rozpraszana przez kontakt, a do wybiegu przechodzi wyłącznie prędkość styczna. Kryterium absorpcji używa szacunkowego budżetu `4 m g × 0.45 m`, oprócz ułożenia nart, przechyłu i prędkości kątowej. Wyprost do lądowania zaczyna się według szacowanego czasu kontaktu. Zeskok ma łagodniejszy odcinek pod progiem i stromy odcinek lądowania; renderowanie i kolizja współdzielą profil.
+
+Po kontakcie ugięcie/recovery kolan jest warstwą prezentacji skalowaną prędkością uderzenia. Nie całkuje sił mięśni ani normalnego kontaktu i nie jest fizycznym modelem amortyzacji. Narty pozostają na wspólnej płaszczyźnie dzięki kinematyce odwrotnej. Telemark jest ograniczony zasięgiem nóg. Środek masy w locie pozostaje fizyczny; po kontakcie masa prezentowanej pozy może różnić się od zredukowanego modelu wybiegu.
 
 ## Walidacja i granice
 

@@ -2,6 +2,7 @@ import {height,slope,landing,landingSlope} from '../world/hill';
 import type {Gesture} from '../input/gesture';
 import {aerodynamicForces,G,AIR_DENSITY,wrapAngle} from './aerodynamics';
 import {centerOfMassOffset,extensionAtHeight,rotatedOffset} from './biomechanics';
+import {jointPose} from '../athlete/pose';
 export const DT=1/120;
 const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
 interface Options {mass?:number;airDensity?:number;gravity?:number}
@@ -95,8 +96,8 @@ export class Simulation {
     this.flightTime+=DT;
     // Completing extension aloft changes the pose about fixed COM; no extra impulse.
     this.extension=clamp(this.extension+Math.max(0,this.extensionRate)*Math.exp(-this.flightTime/.12)*DT,0,Math.max(this.extension,this.target));
-    const deploy=clamp((this.flightTime-.025)/.375,0,1);
-    const f=aerodynamicForces({velocity:{x:this.vx,y:this.vy,z:this.vz},wind:{x:this.wind,y:0,z:this.crossWind},pitch:this.pitch,roll:this.roll,omega:this.omega,bodyLean:this.bodyLean,vAngle:.25*deploy},{density:this.airDensity});
+    const pose=jointPose(this.extension,this.flightTime,this.landingPose,{bodyLean:this.bodyLean});
+    const f=aerodynamicForces({velocity:{x:this.vx,y:this.vy,z:this.vz},wind:{x:this.wind,y:0,z:this.crossWind},pitch:this.pitch,roll:this.roll,omega:this.omega,bodyLean:pose.trunkLean,vAngle:.25*pose.v},{density:this.airDensity});
     this.aero={lift:Math.hypot(f.lift.x,f.lift.y,f.lift.z),drag:Math.hypot(f.drag.x,f.drag.y,f.drag.z),alpha:f.alpha};
     const before={x:this.x,y:this.y,z:this.z};
     this.vx+=f.force.x/this.mass*DT;

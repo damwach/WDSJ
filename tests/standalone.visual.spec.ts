@@ -13,7 +13,8 @@ test('standalone HTML renders and responds without a server or Internet', async 
   // The cloud Chromium policy blocks all file:// navigation. Load the exact
   // distributable document into a blank page; keep networking disabled and
   // check that the document does not request any external resources.
-  await page.setContent(await readFile('artifacts/SKYLIFT-0.6.html', 'utf8'));
+  const {version} = JSON.parse(await readFile('package.json', 'utf8'));
+  await page.setContent(await readFile(`artifacts/SKYLIFT-${version.split('.').slice(0, 2).join('.')}.html`, 'utf8'));
   await page.waitForFunction(() => Boolean((window as any).SKYLIFT));
   await page.getByRole('button', { name: 'Pokaz techniki' }).click();
   await expect(page.locator('#phase')).toHaveText('Najazd');

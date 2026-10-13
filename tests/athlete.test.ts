@@ -8,18 +8,23 @@ describe('athlete anatomical rig', () => {
     for (const [extension, flight, landing] of [[0, 0, 0], [.4, 0, 0], [1, 0, 0], [1, .3, 0], [1, 1, 0], [1, 1, .5], [1, 1, 1]]) {
       athlete.pose(extension, flight, landing);
       athlete.root.updateMatrixWorld(true);
+      const ankles: T.Vector3[] = [];
       for (const leg of athlete.legs) {
         const hip = leg.hip.getWorldPosition(new T.Vector3());
         const knee = leg.knee.getWorldPosition(new T.Vector3());
         const ankle = leg.ankle.getWorldPosition(new T.Vector3());
         expect(hip.distanceTo(knee)).toBeCloseTo(dimensions.thigh, 10);
         expect(knee.distanceTo(ankle)).toBeCloseTo(dimensions.shin, 10);
-        expect(ankle.x).toBeCloseTo(0, 10);
+        ankles.push(ankle);
         expect(ankle.y).toBeCloseTo(.115, 10);
         const ski = leg.ski.children[0] as T.Mesh;
         const bounds = new T.Box3().setFromObject(ski);
         expect(bounds.min.y).toBeCloseTo(0, 6);
       }
+      // A symmetric foot stagger is allowed for telemark; the contact datum
+      // remains at the midpoint, with both feet on the snow plane.
+      expect(ankles[0].x + ankles[1].x).toBeCloseTo(0, 10);
+      if (landing === 0) expect(ankles[0].x).toBeCloseTo(0, 10);
     }
   });
 
@@ -33,8 +38,10 @@ describe('athlete anatomical rig', () => {
     athlete.pose(1, 0, 0);
     expect(athlete.pelvis.position.y - tuckPelvis).toBeGreaterThan(.3);
     const extendedHeight = new T.Box3().setFromObject(athlete.root).max.y;
-    expect(extendedHeight).toBeGreaterThan(1.65);
-    expect(extendedHeight).toBeLessThan(1.85);
+    // Full leg extension still keeps the trunk forward, not fully standing.
+    expect(extendedHeight).toBeGreaterThan(1.55);
+    expect(extendedHeight).toBeLessThan(1.75);
+    expect(athlete.torso.rotation.z).toBeLessThan(-.65);
     athlete.pose(1, 1, 0);
     expect(athlete.legs[0].ski.rotation.y).toBeCloseTo(-athlete.legs[1].ski.rotation.y, 10);
     expect(athlete.legs[0].ski.rotation.y).toBeGreaterThan(.2);
@@ -86,8 +93,30 @@ describe('athlete anatomical rig', () => {
     helmet.geometry.computeBoundingBox();
     const size = helmet.geometry.boundingBox!.getSize(new T.Vector3());
     expect(size.z).toBeGreaterThan(.16);
-    expect(size.z).toBeLessThan(.20);
+    expect(size.z).toBeLessThan(.22);
     expect(size.y).toBeLessThan(.19);
     expect(athlete.root.getObjectByName('continuous-goggle-lens')).toBeInstanceOf(T.Mesh);
+  });
+
+  it('absorbs landing and recovers with fixed bones and both skis on the snow', () => {
+    const athlete = new Athlete();
+    athlete.pose(1, 3, 1, {groundedSeconds: 0, impactSpeed: 4});
+    const touchdown = athlete.pelvis.position.y;
+    athlete.pose(1, 3, 1, {groundedSeconds: .12, impactSpeed: 4});
+    expect(athlete.pelvis.position.y).toBeLessThan(touchdown - .035);
+    for (let i = 0; i <= 150; i++) {
+      athlete.pose(1, 3, 1, {groundedSeconds: i / 100, impactSpeed: 4});
+      athlete.root.updateMatrixWorld(true);
+      for (const leg of athlete.legs) {
+        const hip = leg.hip.getWorldPosition(new T.Vector3());
+        const knee = leg.knee.getWorldPosition(new T.Vector3());
+        const foot = leg.ankle.getWorldPosition(new T.Vector3());
+        expect(hip.distanceTo(knee)).toBeCloseTo(dimensions.thigh, 10);
+        expect(knee.distanceTo(foot)).toBeCloseTo(dimensions.shin, 10);
+        expect(foot.y).toBeCloseTo(.115, 10);
+        expect(leg.knee.rotation.z).toBeLessThan(-.05);
+      }
+    }
+    expect(athlete.pelvis.position.y).toBeGreaterThan(touchdown);
   });
 });

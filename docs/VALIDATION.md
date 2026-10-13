@@ -35,3 +35,14 @@ Nie wykonano: walidacji biomechaniki na motion capture, pomiarów sił, porówna
 - Build TypeScript/Vite i samodzielne HTML przechodzą. Nie ma sztucznego timera kończącego lot; wysokościowy test pozostaje w locie dopóki nie dotknie podłoża.
 - Równania, założenia oraz brak kalibracji eksperymentalnej opisano w PHYSICS.md. Kontakt punktowy i upadek pozostają uproszczone; parametrów nie należy traktować jako zwalidowanych naukowo.
 - Dodatkowy test Chromium z natywnym ruchem myszy oraz naciśnięciem lewego i prawego przycisku przeszedł. Sprawdza rzeczywiste zdarzenia, wyprost napędu i brak dalszego sterowania nogami po puszczeniu przycisków. Łącznie zweryfikowano 6 scenariuszy przeglądarkowych.
+
+## Model i animacja 0.7
+
+- Uruchomiono i obejrzano załączoną v0.3 w Chromium przez lokalny HTTP. Porównano najazd, wyprost i lot, zachowując stałe długości segmentów nowego szkieletu.
+- 43/43 testy jednostkowe przeszły. Nowe kontrole obejmują monotoniczną wysokość COM/inwersję napędu, kolejność pracy kolan i bioder, opóźnione otwarcie V, ciągłość przejść oraz amortyzację i odzyskanie pozycji bez rozciągania nóg.
+- 9/9 testów Chromium przeszło: wszystkie dotychczasowe scenariusze oraz pełna sekwencja w zbliżeniu, niezależność interpolacji od fizyki i izolowane pozy modelu. Zapisano i obejrzano kadry 01–14 i cztery izolowane pozy. W sprawdzanych przebiegach brak błędów konsoli.
+- Przy dwóch równoległych instancjach programowego WebGL dwa testy przekroczyły limit 30 s, podczas robienia zrzutów i oczekiwania na klatkę. Końcowe uruchomienie jest sekwencyjne (jeden worker) z limitem 60 s; wszystkie scenariusze przeszły, najdłuższy 19 s. Nie wyłączono kontroli błędów ani asercji.
+- Przykładowy pokaz w spokojnym powietrzu: lądowanie 64.39 m, lot 3.075 s, normalna prędkość kontaktu 2.776 m/s. Liczby opisują tę wersję modelu, nie rzeczywisty pomiar skoczka.
+- TypeScript/Vite i samodzielny HTML 0.7 przechodzą; dokument offline nie żąda zewnętrznych zasobów. Ruch przez oba fizycznie naciśnięte przyciski myszy nadal steruje napędem wybicia.
+- Deformowane powierzchnie stawów zweryfikowano dla 137214 wierzchołków w zakresie −2.3..0.15 rad: skończone pozycje i normalne jednostkowe. Bufory są ponownie używane.
+- Parametry ruchu są procedurami animacyjnymi; amortyzacja po kontakcie i upadek pozostają uproszczone. Nie wykonano kalibracji na motion capture ani pomiarach reakcji podłoża. Szczegóły: ATHLETE-v07.md i PHYSICS.md.
