@@ -18,9 +18,10 @@ test('sculpted athlete silhouette from front, side, rear and three-quarter angle
     const stats=await page.evaluate(({x,y,z})=>{
       const v=(window as any).SKYLIFT.view;
       const athlete=v.athlete;
+      const lights=v.scene.children.filter((o:any)=>o.isLight).map((o:any)=>o.clone());
       v.scene.clear();v.scene.fog=null;v.scene.background.set('#d5dee4');
-      const ambient=new (v.scene.constructor as any)();
-      void ambient; // removed world geometry; use existing three lights via injected renderer scene
+      v.scene.add(...lights);
+      for(const light of lights)if(light.isDirectionalLight)v.scene.add(light.target);
       athlete.root.position.set(0,0,0);athlete.root.rotation.set(0,0,0);
       athlete.pose(1,1,0);
       v.scene.add(athlete.root);
