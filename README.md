@@ -2,13 +2,27 @@
 
 Laboratorium najazdu i wybicia. Three.js + TypeScript + Vite; bez tekstur obrazkowych.
 
-## Uruchomienie
+## Uruchomienie bez instalacji
+
+Pobierz `artifacts/SKYLIFT-0.4.html` na swój komputer i otwórz go w Chrome lub Edge. Plik zawiera cały kod, Three.js i style. Działa bez serwera, internetu i Node.js. Kliknij „Pokaz techniki”, aby sprawdzić animację.
+
+Adres `localhost` dotyczy komputera, na którym działa przeglądarka. Serwer uruchomiony w środowisku chmurowym nie jest dostępny przez `localhost` na Twoim komputerze.
+
+## Uruchomienie dla programisty
 
 Node.js 22+:
 
 ```sh
-npm ci --cache /workspace/.npm-cache
+npm ci
 npm run dev -- --port 5173
+```
+
+Uruchom te komendy w folderze projektu na swoim komputerze i otwórz adres podany przez Vite. Ścieżka `/workspace/WDSJ` dotyczy wyłącznie środowiska chmurowego.
+
+Odtworzenie pojedynczego pliku HTML:
+
+```sh
+npm run build:standalone
 ```
 
 Rozpocznij najazd lub wybierz pokaz techniki. W ostatnich 8 m przytrzymaj oba przyciski myszy i przesuń mysz w górę (około 120 px daje pełny cel wyprostu). Kierunek boczny przesuwa modelowaną linię reakcji, szybkość gestu zwiększa mimośród siły. R resetuje, spacja zatrzymuje symulację. Kamera boczna służy analizie ruchu.
@@ -18,10 +32,11 @@ Rozpocznij najazd lub wybierz pokaz techniki. W ostatnich 8 m przytrzymaj oba pr
 ```sh
 npm run build
 npm test
+npm run build:standalone
 npm run test:visual
 ```
 
-Test używa systemowego /usr/bin/chromium (lub CHROMIUM_PATH).
+Test używa systemowego /usr/bin/chromium (lub CHROMIUM_PATH). Obejmuje także zawartość pojedynczego HTML z wyłączonym dostępem do sieci. Polityka Chromium w chmurze blokuje nawigację `file://`, więc test osadza dokładną zawartość pliku na pustej stronie; otwarcie pliku na komputerze użytkownika wymaga przeglądarki dopuszczającej lokalne HTML.
 
 Zrzuty kolejnych faz trafiają do artifacts/. Test przeglądarkowy sprawdza błędy konsoli, przejście najazd–lot i długości kości. To test dymny z zapisem obrazów, nie automatyczne porównanie z zatwierdzonym wzorcem.
 

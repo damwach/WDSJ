@@ -1,0 +1,32 @@
+import { test, expect } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
+
+test('standalone HTML renders and responds without a server or Internet', async ({ page, context }) => {
+  const errors: string[] = [];
+  const remoteRequests: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+  page.on('request', request => {
+    if (/^https?:/.test(request.url())) remoteRequests.push(request.url());
+  });
+  await context.setOffline(true);
+  // The cloud Chromium policy blocks all file:// navigation. Load the exact
+  // distributable document into a blank page; keep networking disabled and
+  // check that the document does not request any external resources.
+  await page.setContent(await readFile('artifacts/SKYLIFT-0.4.html', 'utf8'));
+  await page.waitForFunction(() => Boolean((window as any).SKYLIFT));
+  await page.getByRole('button', { name: 'Pokaz techniki' }).click();
+  await expect(page.locator('#phase')).toHaveText('Najazd');
+  await page.evaluate(() => (window as any).SKYLIFT.step(180));
+  const result = await page.evaluate(() => {
+    const { sim, view } = (window as any).SKYLIFT;
+    return { x: sim.x, phase: sim.phase, triangles: view.renderer.info.render.triangles };
+  });
+  expect(result.x).toBeGreaterThan(-40);
+  expect(result.phase).toBe('inrun');
+  expect(result.triangles).toBeGreaterThan(1000);
+  await page.getByRole('button', { name: 'Kamera: śledzenie' }).click();
+  await page.screenshot({ path: 'artifacts/05-standalone.png' });
+  expect(remoteRequests).toEqual([]);
+  expect(errors).toEqual([]);
+});
