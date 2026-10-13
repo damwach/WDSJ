@@ -2,6 +2,7 @@ import './style.css';
 import { Simulation, FixedClock, DT } from './physics/simulation';
 import { GestureInput } from './input/gesture';
 import { View, captureRenderState, type CameraMode } from './render/scene';
+import { WindTunnelPanel } from './lab/panel';
 import {certificate,distanceAt,inrunDistance} from './world/hill';
 
 const el = (id: string) => document.getElementById(id)!;
@@ -14,6 +15,7 @@ let last = 0;
 
 function startApp() {
   const view = new View(canvas);
+  const tunnel = new WindTunnelPanel();
   el('hill-name').textContent=certificate.name;
   el('hill-meta').textContent=`${certificate.place} · K ${certificate.k} / HS ${certificate.hs}`;
   let previousRenderState = captureRenderState(sim);
@@ -40,6 +42,7 @@ function startApp() {
     paused = !paused;
     el('pause').textContent = paused ? 'Wznów' : 'Pauza';
   }
+  el('open-tunnel').onclick = () => tunnel.open();
   el('start').onclick = () => reset();
   el('demo').onclick = () => reset(true);
   el('pause').onclick = pause;
@@ -51,6 +54,8 @@ function startApp() {
   };
   for (const button of cameras) button.onclick = () => setCamera(button.dataset.camera as CameraMode);
   window.addEventListener('keydown', event => {
+    if (event.code === 'Escape' && tunnel.isOpen) { tunnel.close(); return; }
+    if (tunnel.isOpen) return;
     if (event.repeat || (event.target as HTMLElement)?.tagName === 'BUTTON' && event.code === 'Space') return;
     if (event.code === 'KeyR') reset();
     if (event.code === 'KeyC') setCamera(modes[(modes.indexOf(view.mode) + 1) % modes.length]);
@@ -81,7 +86,7 @@ function startApp() {
   function frame(time: number) {
     const dt = last ? (time - last) / 1000 : 0;
     last = time;
-    if (!paused) {
+    if (!paused && !tunnel.isOpen) {
       for (const gesture of input.consume()) sim.gesture(gesture);
       for (const motion of input.consumeMotion()) sim.trim(motion.up,motion.side);
       clock.advance(dt, () => {
