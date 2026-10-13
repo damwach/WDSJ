@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { jointPose, dimensions, hipHalfWidthM, type PoseControl } from './pose';
-import { makeTorso, makePelvis, makeLimb, makeHead, makeGlove, makeJointSleeve } from './surfaces';
+import { makeJointSleeve } from './surfaces';
+import { makeHumanTorso, makeHumanPelvis, makeHumanLimb, makeHumanHead, makeHumanGlove } from './human';
 import { DEFAULT_EQUIPMENT, type EquipmentConfig } from '../equipment/config';
 import { SkiAssembly } from '../equipment/visual';
 export { dimensions } from './pose';
@@ -30,11 +31,11 @@ export class Athlete {
     this.root.name = 'ski-jumper';
     this.root.add(this.pelvis);
     this.pelvis.add(this.torso);
-    this.pelvis.add(makePelvis());
-    this.torso.add(makeTorso());
+    this.pelvis.add(makeHumanPelvis());
+    this.torso.add(makeHumanTorso());
     this.head.name = 'helmet-and-head';
     this.head.position.set(.006, .558, 0);
-    this.head.add(makeHead());
+    this.head.add(makeHumanHead());
     this.torso.add(this.head);
 
     for (const side of [-1, 1] as const) {
@@ -42,12 +43,12 @@ export class Athlete {
       hip.name = side === -1 ? 'left-hip' : 'right-hip';
       hip.position.z = side * hipHalfWidthM;
       this.pelvis.add(hip);
-      hip.add(makeLimb(dimensions.thigh, 'thigh', side));
+      hip.add(makeHumanLimb(dimensions.thigh, 'thigh', side));
       const knee = new T.Group();
       knee.name = side === -1 ? 'left-knee' : 'right-knee';
       knee.position.y = -dimensions.thigh;
       hip.add(knee);
-      knee.add(makeLimb(dimensions.shin, 'shin', side));
+      knee.add(makeHumanLimb(dimensions.shin, 'shin', side));
       const kneeSleeve = makeJointSleeve('knee');
       knee.add(kneeSleeve.object);
       this.kneeSleeves.push(kneeSleeve);
@@ -61,15 +62,15 @@ export class Athlete {
       const arm = new T.Group();
       arm.position.set(-.005, .437, side * .173);
       this.torso.add(arm);
-      arm.add(makeLimb(.29, 'upperArm', side));
+      arm.add(makeHumanLimb(.29, 'upperArm', side));
       const elbow = new T.Group();
       elbow.position.y = -.29;
       arm.add(elbow);
-      elbow.add(makeLimb(.25, 'forearm', side));
+      elbow.add(makeHumanLimb(.25, 'forearm', side));
       const elbowSleeve = makeJointSleeve('elbow');
       elbow.add(elbowSleeve.object);
       this.elbowSleeves.push(elbowSleeve);
-      const glove = makeGlove(side);
+      const glove = makeHumanGlove(side);
       glove.position.y = -.25;
       elbow.add(glove);
       this.arms.push(arm);
