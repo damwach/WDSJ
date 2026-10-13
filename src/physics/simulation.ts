@@ -1,9 +1,9 @@
-import {height,slope,landing} from '../world/hill';
+import {height,slope,landing,landingSlope} from '../world/hill';
 import type {Gesture} from '../input/gesture';
 export const DT=1/120;
 const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
 export class Simulation {
- x=-40;y=height(-40);z=0;v=12;vx=0;vy=0;vz=0;pitch=0;omega=0;roll=0;rollRate=0;
+ x=-40;y=height(-40);z=0;v=12;vx=0;vy=0;vz=0;pitch=Math.atan(slope(-40));omega=0;roll=0;rollRate=0;
  extension=0;extensionRate=0;target=0;stroke=0;effort=0;eccentricity=0;normalVelocity=0;flightTime=0;time=0;phase='ready';demo=false;wind=0;impact=0;
  reset(demo=false){Object.assign(this,new Simulation());this.demo=demo;this.phase='inrun'}
  gesture(g:Gesture){if(this.phase!=='inrun'||this.x < -8)return;this.stroke=clamp(this.stroke+g.up/120,0,1.6);this.target=clamp(this.stroke,0,1);this.effort=clamp(Math.max(0,g.up)/g.duration/600,0,2);this.eccentricity=clamp(this.eccentricity+g.side/100,-1,1);}
@@ -25,7 +25,7 @@ export class Simulation {
  this.vx+=(-q*cd*ux/speed-q*cl*uy/speed)/78*DT;this.vy+=(-9.81-q*cd*uy/speed+q*cl*ux/speed)/78*DT;
  this.omega+=(q*.08*(flow+.16-this.pitch)*stall-7*this.omega)/18*DT;this.pitch+=this.omega*DT;this.rollRate+=(-4*this.roll-5*this.rollRate)/18*DT;this.roll+=this.rollRate*DT;
  this.x+=this.vx*DT;this.y+=this.vy*DT;this.z+=this.vz*DT;
- if(this.y<=landing(this.x)){this.impact=Math.abs((this.vy+.42*this.vx)/Math.hypot(1,.42));this.phase=Math.abs(this.pitch-Math.atan(-.42))<.55&&Math.abs(this.roll)<.4&&this.impact<7?'landed':'fallen';this.y=landing(this.x);}
+ if(this.y<=landing(this.x)){const tangent=landingSlope(this.x);this.impact=Math.abs((this.vy-tangent*this.vx)/Math.hypot(1,tangent));this.phase=Math.abs(this.pitch-Math.atan(tangent))<.55&&Math.abs(this.roll)<.4&&this.impact<7?'landed':'fallen';this.y=landing(this.x);}
  }
  }
  snapshot(){return {x:this.x,y:this.y,z:this.z,pitch:this.pitch,roll:this.roll,extension:this.extension,phase:this.phase,flightTime:this.flightTime}}

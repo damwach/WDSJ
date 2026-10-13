@@ -1,20 +1,95 @@
 import * as T from 'three';
-import {height,landing} from '../world/hill';
-import {Athlete} from '../athlete/rig';
-import type {Simulation} from '../physics/simulation';
+import { Athlete } from '../athlete/rig';
+import { createVenue } from '../world/venue';
+import type { Simulation } from '../physics/simulation';
+
+export type CameraMode = 'overview' | 'broadcast' | 'athlete';
+
 export class View {
- renderer:T.WebGLRenderer;scene=new T.Scene();camera=new T.PerspectiveCamera(38,1,.1,500);athlete=new Athlete();side=false;
- constructor(canvas:HTMLCanvasElement){this.renderer=new T.WebGLRenderer({canvas,antialias:true});this.renderer.setPixelRatio(Math.min(devicePixelRatio,2));this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=T.PCFSoftShadowMap;this.renderer.toneMapping=T.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.2;this.scene.background=new T.Color('#b4ccd3');this.scene.fog=new T.Fog('#b4ccd3',65,230);this.scene.add(new T.HemisphereLight('#e5f4ff','#647b78',2));const sun=new T.DirectionalLight('#fff0ce',3.5);sun.position.set(-25,50,25);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-55,right:55,top:55,bottom:-55,near:1,far:150});sun.shadow.bias=-.0002;this.scene.add(sun);this.scene.add(sun.target);sun.target.position.set(-15,6,0);
- const snow=new T.MeshStandardMaterial({color:'#e8f0ef',roughness:.86});const metal=new T.MeshStandardMaterial({color:'#617d83',roughness:.58,metalness:.35});const wood=new T.MeshStandardMaterial({color:'#a47d59',roughness:.8});
- const strip=(from:number,to:number,width:number,fn:(x:number)=>number,mat:T.Material,z=0)=>{const points:number[]=[];for(let x=from;x<to;x+=.25){const b=Math.min(x+.25,to);points.push(x,fn(x),z-width/2,b,fn(b),z-width/2,b,fn(b),z+width/2,x,fn(x),z-width/2,b,fn(b),z+width/2,x,fn(x),z+width/2);}for(let i=0;i<points.length;i+=9){for(let j=0;j<3;j++){const tmp=points[i+3+j];points[i+3+j]=points[i+6+j];points[i+6+j]=tmp;}}const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(points,3));g.computeVertexNormals();const m=new T.Mesh(g,mat);m.receiveShadow=true;this.scene.add(m);};
- snow.side=T.DoubleSide;strip(-65,0,3.4,height,snow);strip(0,100,22,landing,snow);strip(-100,160,190,x=>landing(x)-2,snow);
- for(const z of [-.105,.105])strip(-65,0,.045,x=>height(x)+.006,new T.MeshStandardMaterial({color:'#8ca9b5'}),z);
- const beam=(a:T.Vector3,b:T.Vector3,r:number,mat:T.Material)=>{const m=new T.Mesh(new T.CylinderGeometry(r,r,a.distanceTo(b),8),mat);m.position.copy(a).add(b).multiplyScalar(.5);m.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),b.clone().sub(a).normalize());m.castShadow=true;this.scene.add(m);};
- for(const z of [-1.8,1.8]){for(let x=-60;x<0;x+=3){beam(new T.Vector3(x,height(x)-.3,z),new T.Vector3(x,height(x)+.85,z),.035,metal);if(x< -3)beam(new T.Vector3(x,height(x)+.85,z),new T.Vector3(x+3,height(x+3)+.85,z),.025,metal);}for(let x=-55;x<0;x+=8){beam(new T.Vector3(x,landing(x)-3,z),new T.Vector3(x,height(x)-.1,z),.15,wood);}}
- const lip=new T.Mesh(new T.BoxGeometry(.18,.32,3.8),new T.MeshStandardMaterial({color:'#c64636'}));lip.position.set(0,-.16,0);this.scene.add(lip);
- let seed=57;const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
- for(let i=0;i<95;i++){const x=-80+rand()*210,z=(i%2?1:-1)*(17+rand()*55),y=landing(x)-2,h=5+rand()*9;for(let j=0;j<3;j++){const tree=new T.Mesh(new T.ConeGeometry(h*(.19-j*.035),h*.55,9),new T.MeshStandardMaterial({color:j%2?'#42635f':'#344e4d',roughness:1}));tree.position.set(x,y+h*(.3+j*.2),z);this.scene.add(tree);}}
- this.scene.add(this.athlete.root);window.addEventListener('resize',()=>this.resize());this.resize();}
- resize(){this.renderer.setSize(innerWidth,innerHeight);this.camera.aspect=innerWidth/innerHeight;this.camera.updateProjectionMatrix()}
- render(s:Simulation){const a=this.athlete;a.pose(s.extension,s.flightTime,s.phase==='landed'?1:0);a.root.position.set(s.x,s.y,s.z);a.root.rotation.set(s.phase==='fallen'?1.1: s.roll,0,s.pitch);const p=new T.Vector3(s.x,s.y+.8,s.z);this.camera.position.copy(p).add(this.side?new T.Vector3(0,2.3,10):new T.Vector3(7,3.3,8));this.camera.lookAt(p.clone().add(new T.Vector3(-1,.15,0)));this.renderer.render(this.scene,this.camera);}
+  renderer: T.WebGLRenderer;
+  scene = new T.Scene();
+  camera = new T.PerspectiveCamera(42, 1, .1, 1400);
+  athlete = new Athlete();
+  mode: CameraMode = 'overview';
+  private sun: T.DirectionalLight;
+  private look = new T.Vector3();
+  private settled = false;
+  private previousTime = performance.now();
+
+  // Kept for replay/test compatibility; actual UI offers three explicit cameras.
+  get side() { return this.mode === 'broadcast'; }
+  set side(value: boolean) { this.setMode(value ? 'broadcast' : 'athlete'); }
+
+  constructor(canvas: HTMLCanvasElement) {
+    this.renderer = new T.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+    this.renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = T.PCFSoftShadowMap;
+    this.renderer.toneMapping = T.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.05;
+    this.scene.background = new T.Color('#b8d0e2');
+    this.scene.fog = new T.Fog('#b8d0e2', 200, 900);
+    this.scene.add(new T.HemisphereLight('#d3e8ff', '#738397', 2.0));
+    this.sun = new T.DirectionalLight('#fff0d5', 3.1);
+    this.sun.castShadow = true;
+    this.sun.shadow.mapSize.set(2048, 2048);
+    this.sun.shadow.normalBias = .015;
+    this.sun.shadow.bias = -.00015;
+    Object.assign(this.sun.shadow.camera, { left: -42, right: 42, top: 42, bottom: -42, near: .1, far: 180 });
+    this.scene.add(this.sun, this.sun.target, createVenue(), this.athlete.root);
+    this.athlete.root.name = 'athlete';
+    window.addEventListener('resize', () => this.resize());
+    this.resize();
+  }
+
+  setMode(mode: CameraMode, immediate = false) {
+    this.mode = mode;
+    if (immediate) this.settled = false;
+  }
+
+  resize() {
+    this.renderer.setSize(innerWidth, innerHeight);
+    this.camera.aspect = innerWidth / innerHeight;
+    this.camera.updateProjectionMatrix();
+  }
+
+  render(s: Simulation) {
+    const now = performance.now();
+    const dt = Math.min(.05, (now - this.previousTime) / 1000);
+    this.previousTime = now;
+    const landingPose = s.phase === 'landed' ? 1 : 0;
+    this.athlete.pose(s.extension, s.flightTime, landingPose);
+    this.athlete.root.position.set(s.x, s.y, s.z);
+    this.athlete.root.rotation.set(s.phase === 'fallen' ? 1.1 : s.roll, 0, s.pitch);
+
+    const target = new T.Vector3();
+    const eye = new T.Vector3();
+    if (this.mode === 'overview') {
+      target.set(60, -20, 0);
+      const portrait = this.camera.aspect < .9;
+      if (portrait) target.y = -29;
+      eye.copy(target).add(portrait ? new T.Vector3(370, 170, 130) : new T.Vector3(86, 70, 246));
+    } else if (this.mode === 'athlete') {
+      target.set(s.x + .35, s.y + .7, s.z);
+      eye.copy(target).add(new T.Vector3(2.9, 2.6, 6.1));
+    } else {
+      // A consistent lateral camera keeps the upcoming table/landing in frame.
+      const lead = s.phase === 'flight' ? 5 : 3.8;
+      target.set(s.x + lead, s.y - .6, s.z);
+      eye.copy(target).add(new T.Vector3(2.5, 4.8, 19));
+      if (this.camera.aspect < 1) eye.add(new T.Vector3(0, 3, 10));
+    }
+    const fog = this.scene.fog as T.Fog;
+    fog.near = this.mode === 'overview' ? 550 : 160;
+    fog.far = this.mode === 'overview' ? 1250 : 900;
+    const blend = this.settled ? 1 - Math.exp(-dt * 5.5) : 1;
+    this.camera.position.lerp(eye, blend);
+    this.look.lerp(target, blend);
+    this.camera.lookAt(this.look);
+    this.settled = true;
+
+    this.sun.position.set(s.x - 35, s.y + 75, 35);
+    this.sun.target.position.set(s.x, s.y, 0);
+    this.renderer.render(this.scene, this.camera);
+  }
 }

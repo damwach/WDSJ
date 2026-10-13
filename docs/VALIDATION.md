@@ -17,3 +17,11 @@ Nie wykonano: walidacji biomechaniki na motion capture, pomiarów sił, porówna
 - Test `standalone HTML renders and responds without a server or Internet`: 1/1 zakończony poprawnie. Chromium renderuje geometrię i reaguje na przyciski przy wyłączonej sieci, bez żądań HTTP i bez błędów konsoli. Zrzut: `artifacts/05-standalone.png`.
 - Zarządzana polityka Chromium w chmurze blokuje `file://` (`ERR_BLOCKED_BY_ADMINISTRATOR`); test wczytuje dokładną zawartość pliku przez `page.setContent`. Nie potwierdzono bezpośredniego otwarcia lokalnego pliku w tym zarządzanym Chromium ani na komputerze użytkownika.
 - `artifacts/SKYLIFT-0.4.zip` zawiera HTML i krótką instrukcję. Zweryfikowano zgodność zawartości HTML w ZIP z przetestowanym plikiem.
+
+## Iteracja wizualna 0.5
+
+- Build TypeScript/Vite i pakiet samodzielnego HTML.
+- 10 testów jednostkowych: deterministyczny ruch, sterowanie, moment agresywnego wybicia, stałe długości nóg i kontakt nart, zakresy wysokości sylwetki, symetryczne V, brak przebudowy modelu przy zmianie pozy, ciągłość i pochodna profilu zeskoku.
+- 4 testy Chromium: panorama z punktami startu/progu/zeskoku/wybiegu w kadrze, przejście przez wszystkie kamery i fazy ruchu, widok 390×844, gest obu przycisków, samodzielny dokument offline. Zrzuty zapisane w artifacts/; kontrole błędów konsoli włączone.
+- Referencja skijumping.io nie mogła zostać otwarta z powodu blokady sieci. Nie deklarujemy zgodności graficznej potwierdzonej porównaniem z referencją.
+- Aerodynamika i napęd wyprostu pozostają eksperymentalne; pełne lądowanie, ragdoll i kalibracja naukowa pozostają poza zakresem tej iteracji.

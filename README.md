@@ -1,4 +1,4 @@
-# SKYLIFT 3D — 0.4 / iteracja 01
+# SKYLIFT 3D — 0.5 / iteracja 02
 
 Laboratorium najazdu i wybicia. Three.js + TypeScript + Vite; bez tekstur obrazkowych.
 
@@ -14,7 +14,7 @@ Do pracy lokalnej: sklonuj repozytorium, wejdź do jego folderu, uruchom `npm ci
 
 ## Uruchomienie bez instalacji
 
-Pobierz `artifacts/SKYLIFT-0.4.html` na swój komputer i otwórz go w Chrome lub Edge. Plik zawiera cały kod, Three.js i style. Działa bez serwera, internetu i Node.js. Kliknij „Pokaz techniki”, aby sprawdzić animację.
+Pobierz `artifacts/SKYLIFT-0.5.html` na swój komputer i otwórz go w Chrome lub Edge. Plik zawiera cały kod, Three.js i style. Działa bez serwera, internetu i Node.js. Kliknij „Pokaz techniki”, aby sprawdzić animację.
 
 Adres `localhost` dotyczy komputera, na którym działa przeglądarka. Serwer uruchomiony w środowisku chmurowym nie jest dostępny przez `localhost` na Twoim komputerze.
 
@@ -61,3 +61,13 @@ Wyprost jest ograniczonym napędem sprężysto-tłumiącym, a impuls normalny i 
 Lot to model 2D sił z prostym bocznym balansem; wiatr jest parametrem modelu, bez UI. Współczynniki aerodynamiczne nie zostały skalibrowane eksperymentalnie. V jest animowany; nie ma niezależnej dynamiki nart. Kontakt i upadek to tymczasowa klasyfikacja i końcowa poza, bez telemarku, amortyzacji i ragdolla. Pełne lądowanie należy do następnej iteracji.
 
 Analiza poprzedniej wersji: [docs/REVIEW-v03.md](docs/REVIEW-v03.md).
+
+## Zmiany wizualne 0.5
+
+- Pełna panorama najazdu, progu, zakrzywionego zeskoku i płaskiego wybiegu. Kamera „Transmisja” śledzi zawodnika z boku i pokazuje teren przed nim; „Zawodnik” służy analizie pozy.
+- Nowa sylwetka z modelowanym kombinezonem, twarzą, kaskiem/goglami, rękawicami, butami i profilowanymi nartami. Geometria pozostaje stała; ruch przebiega przez hierarchię stawów.
+- Konstrukcja skoczni, schody, startowy pawilon, odległości, barierki, trybuny, las i łagodne górskie grzbiety. Elementy powtarzalne są renderowane instancjami.
+- Kompaktowy HUD pozostawia środek ekranu grze. Widok pionowy ma osobny kadr i zasięg mgły.
+- Zeskok ma ciągłą wysokość i styczną; fizyka kontaktu używa tej samej stycznej co geometria. To profil projektowy, bez certyfikacji FIS.
+
+Referencja `skijumping.io` była niedostępna przez politykę sieci środowiska (CONNECT 403). Nie wykonano bezpośredniego porównania z jej grafiką. Sterowanie gestem obu przycisków, moment wybicia i stały krok 120 Hz zostały zachowane.

@@ -1,1 +1,47 @@
-<!doctype html><html lang="pl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Cpath fill=%27%23203f47%27 d=%27M0 0h32v32H0z%27/%3E%3Cpath stroke=%27white%27 fill=%27none%27 d=%27m5 24 12-16 10 16%27/%3E%3C/svg%3E"><title>SKYLIFT — Laboratorium wybicia</title></head><body><canvas id="scene"></canvas><header><div class="brand">SKY<span>LIFT</span><small>SKI JUMPING / MOTION LAB</small></div><div class="edition">ITERACJA 01 <b>● LIVE 3D</b></div></header><aside><div class="eyebrow">ALPINE TRAINING CENTRE</div><h1>Precyzja<br>zaczyna się<br>na progu.</h1><p>Jeden ruch. Całe ciało.<br>Laboratorium najazdu i wybicia.</p><div class="rule"></div><label>FAZA RUCHU</label><strong id="phase">Gotowy</strong><div class="metrics"><div><label>PRĘDKOŚĆ</label><strong id="speed">0 <small>km/h</small></strong></div><div><label>DO PROGU</label><strong id="distance">40 <small>m</small></strong></div></div><label>WYPROST NÓG</label><div class="bar"><i id="extension"></i></div><div id="notice">Model eksperymentalny · skala w metrach</div></aside><nav><button id="start">Rozpocznij najazd ↗</button><button id="demo">Pokaz techniki</button><button id="camera">Kamera: śledzenie</button><button id="pause">Pauza</button></nav><footer><div><b>WYBICIE / OBA PRZYCISKI + RUCH ↑</b><p>Ostatnie 8 m: przytrzymaj oba przyciski myszy i przesuń ją płynnie w górę.<br>R — nowy najazd · Spacja — pauza · kamera boczna do analizy stawów</p></div><span>PROCEDURAL GEOMETRY<br>120 Hz / FIXED STEP</span></footer><script type="module" src="/src/main.ts"></script></body></html>
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Cpath fill=%27%230f2638%27 d=%27M0 0h32v32H0z%27/%3E%3Cpath stroke=%27%23ff664f%27 fill=%27none%27 stroke-width=%273%27 d=%27m5 24 12-16 10 16%27/%3E%3C/svg%3E" />
+  <title>SKYLIFT 3D — Alpine training</title>
+</head>
+<body>
+  <canvas id="scene" aria-label="Trójwymiarowy widok skoczni i zawodnika"></canvas>
+  <header>
+    <div class="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="m3 25 12-18 6 10 5-6 5 14M8 25h18" /></svg><div>SKY<span>LIFT</span><small>SKI JUMPING</small></div></div>
+    <div class="venue-name"><span class="live-dot"></span>ALPINE TRAINING CENTRE <span class="edition">/ 0.5</span></div>
+    <button id="help" class="icon-button" aria-expanded="false" aria-controls="help-panel" title="Sterowanie">?</button>
+  </header>
+  <section class="session-panel" aria-label="Informacje o przejeździe">
+    <div class="session-tag">TRENING INDYWIDUALNY <span>01</span></div>
+    <h1>Alpine valley</h1>
+    <div class="session-meta">Zimowa sesja <i></i> Najazd i wybicie</div>
+    <div class="phase-line"><span class="phase-dot"></span><strong id="phase">Gotowy do najazdu</strong></div>
+  </section>
+  <section id="help-panel" hidden>
+    <strong>Twoje wybicie</strong>
+    <p>Na ostatnich 8 metrach trzymaj oba przyciski myszy i płynnie przesuń ją w górę. Długość i szybkość ruchu sterują wyprostem nóg. Ruch w bok wpływa na równowagę.</p>
+    <p><kbd>R</kbd> Powtórz <kbd>Spacja</kbd> Pauza <kbd>C</kbd> Kamera</p>
+    <small>Eksperymentalny model fizyki. Lot i lądowanie w fazie rozwoju.</small>
+  </section>
+  <nav class="cameras" aria-label="Wybór kamery">
+    <span>WIDOK</span>
+    <button data-camera="overview" class="active" aria-pressed="true">Skocznia</button>
+    <button data-camera="broadcast" aria-pressed="false">Transmisja</button>
+    <button data-camera="athlete" aria-pressed="false">Zawodnik</button>
+  </nav>
+  <div id="notice" role="status">Obejrzyj skocznię lub rozpocznij trening</div>
+  <section class="telemetry" aria-label="Parametry ruchu">
+    <div class="metric"><label>PRĘDKOŚĆ</label><strong id="speed">0.0 <small>km/h</small></strong></div>
+    <div class="metric"><label id="distance-label">DO PROGU</label><strong id="distance">40.0 <small>m</small></strong></div>
+    <div class="extension-metric"><label>WYPROST NÓG <span id="extension-value">0%</span></label><div class="bar"><i id="extension"></i></div><small>OBA PRZYCISKI + RUCH W GÓRĘ ↑</small></div>
+  </section>
+  <footer>
+    <div class="short-help"><span class="mouse">↑</span><div><b>Poczuj moment wybicia</b><span>Ostatnie 8 m · oba przyciski + ruch w górę</span></div></div>
+    <div class="actions"><button id="pause" title="Spacja">Pauza</button><button id="demo">Pokaz techniki</button><button id="start" class="primary">Rozpocznij najazd <span>↗</span></button></div>
+  </footer>
+  <div id="fatal-error" hidden role="alert"></div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

@@ -13,7 +13,7 @@ test('standalone HTML renders and responds without a server or Internet', async 
   // The cloud Chromium policy blocks all file:// navigation. Load the exact
   // distributable document into a blank page; keep networking disabled and
   // check that the document does not request any external resources.
-  await page.setContent(await readFile('artifacts/SKYLIFT-0.4.html', 'utf8'));
+  await page.setContent(await readFile('artifacts/SKYLIFT-0.5.html', 'utf8'));
   await page.waitForFunction(() => Boolean((window as any).SKYLIFT));
   await page.getByRole('button', { name: 'Pokaz techniki' }).click();
   await expect(page.locator('#phase')).toHaveText('Najazd');
@@ -25,7 +25,13 @@ test('standalone HTML renders and responds without a server or Internet', async 
   expect(result.x).toBeGreaterThan(-40);
   expect(result.phase).toBe('inrun');
   expect(result.triangles).toBeGreaterThan(1000);
-  await page.getByRole('button', { name: 'Kamera: śledzenie' }).click();
+  await page.getByRole('button', { name: 'Zawodnik', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Zawodnik', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await page.evaluate(() => {
+    const app = (window as any).SKYLIFT;
+    app.setCamera('athlete', true);
+    app.step(0);
+  });
   await page.screenshot({ path: 'artifacts/05-standalone.png' });
   expect(remoteRequests).toEqual([]);
   expect(errors).toEqual([]);
