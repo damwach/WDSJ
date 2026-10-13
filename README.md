@@ -1,4 +1,4 @@
-# SKYLIFT 3D — 0.9 / laboratorium aerodynamiki
+# SKYLIFT 3D — 0.10 / rejestrator i replay
 
 Laboratorium najazdu i wybicia. Three.js + TypeScript + Vite; bez tekstur obrazkowych.
 
@@ -14,9 +14,9 @@ Do pracy lokalnej: sklonuj repozytorium, wejdź do jego folderu, uruchom `npm ci
 
 ## Uruchomienie bez instalacji
 
-Podgląd online działa pod adresem https://damwach.github.io/WDSJ/?v=0.9. Kamera „Skocznia” pokazuje pełny profil Wielkiej Krokwi; „Pokaz techniki” i „Zawodnik” pokazują ruch z bliska.
+Podgląd online wydania z `main`: https://damwach.github.io/WDSJ/. Zmiany tej gałęzi są dostępne do przeglądu w PR i zostaną opublikowane przez Pages po połączeniu. Kamera „Skocznia” pokazuje pełny profil Wielkiej Krokwi; „Pokaz techniki” i „Zawodnik” pokazują ruch z bliska.
 
-Opcjonalnie pobierz `artifacts/SKYLIFT-0.9.html` na swój komputer i otwórz go w Chrome lub Edge. Plik zawiera cały kod, Three.js i style. Działa bez serwera, internetu i Node.js.
+Opcjonalnie pobierz `artifacts/SKYLIFT-0.10.html` na swój komputer i otwórz go w Chrome lub Edge. Plik zawiera cały kod, Three.js i style. Działa bez serwera, internetu i Node.js.
 
 Adres `localhost` dotyczy komputera, na którym działa przeglądarka. Serwer uruchomiony w środowisku chmurowym nie jest dostępny przez `localhost` na Twoim komputerze.
 
@@ -56,7 +56,7 @@ Zrzuty kolejnych faz trafiają do artifacts/. Test przeglądarkowy sprawdza bł�
 
 Wymiary zawodnika: udo 44 cm, podudzie 43 cm, tułów 53 cm, narty około 2.6 m. Od 0.8 skocznia ma wymiary Wielkiej Krokwi według przekazanego certyfikatu FIS 105 / POL 1: K 125 / HS 140. Jeden metr odpowiada jednej jednostce sceny. Certyfikat nie jest pełnym pomiarem profilu; brakujące równania i wymiary terenu są rekonstrukcją, opisaną w [HILL-HS140.md](docs/HILL-HS140.md). Certyfikacja rzeczywistego obiektu nie jest certyfikacją modelu gry.
 
-Fizyka jest deterministyczna dla identycznych próbek na identycznych krokach. Wejście na żywo trafia do najbliższego kroku, bez pełnego systemu replayu. Przerwy klatek powyżej 250 ms są ograniczane. Rendering interpoluje prezentację między krokami 120 Hz, bez zmieniania stanu fizycznego.
+Fizyka jest deterministyczna dla identycznych próbek na identycznych krokach. Rejestrator przypisuje wejście do kroków 120 Hz i odtwarza skoki przez ponowną symulację, ze sprawdzeniem każdego pola. Przerwy klatek powyżej 250 ms są ograniczane. Rendering interpoluje prezentację między krokami 120 Hz, bez zmieniania stanu fizycznego.
 
 Model sił używa pełnej grawitacji, prędkości względem wiatru oraz osobnych powierzchni aerodynamicznych ciała i nart. Napęd wyprostu ma ograniczone siły; moment wybicia wynika z mimośrodu reakcji. Lądowanie wynika z kontaktu nart z profilem i rozprasza normalną energię; po nim następuje wybieg. W locie ruch myszy w pionie zmienia sylwetkę, w bok balans; wiatr ustawisz pod przyciskiem „?”.
 
@@ -105,3 +105,11 @@ Zmniejszono powierzchnię referencyjną ciała do 0.489 m² na podstawie rzutu g
 Przycisk „Tunel aerodynamiczny” otwiera osobny podgląd tej samej funkcji sił co lot i wstrzymuje skok. Suwaki zmieniają prędkość przepływu, ustawienie nart, pochylenie tułowia, otwarcie V i gęstość. Można porównać pozycje A/B i wyeksportować krzywą do CSV. Wyniki są prognozami niezwalidowanego modelu, nie eksperymentem ani CFD.
 
 Opis: [WIND-TUNNEL.md](docs/WIND-TUNNEL.md). Audyt fizyki i status dostępności danych naukowych: [AERODYNAMIC-AUDIT.md](docs/AERODYNAMIC-AUDIT.md). CI sprawdza także WebGL w Chromium; [CI.md](docs/CI.md) wyjaśnia zastąpienie błędnego workflow Deno.
+
+## Rejestrator i Physics Debugger 0.10
+
+Każdy rozpoczęty skok zapisuje stan, rzeczywiste wejście, siły, momenty, pozę oraz zdarzenia wybicia i kontaktu co 1/120 s. Przycisk **Fizyka** otwiera Physics Debugger: przewijanie, odtwarzanie, pięć wykresów, wektory sił i trajektorie oraz import/eksport JSON. Ostatnie dziesięć wcześniejszych skoków pozostaje w pamięci sesji; przeładowanie strony je usuwa, dlatego zapis do pliku jest jawny.
+
+Replay powtarza wejście na tych samych krokach i weryfikuje wszystkie próbki z tolerancją bezwzględną 10⁻⁹. Nagłówek identyfikuje fizykę i skocznię przez SHA-256 źródeł, parametry, commit, belkę i jednostki. Przewijanie używa oddzielnej symulacji i nie modyfikuje bieżącego skoku. Wydanie dodaje diagnostykę bez zmiany charakterystyk aerodynamicznych.
+
+[Format i ograniczenia rejestratora](docs/RECORDER.md), [obsługa debuggera](docs/DEBUGGER.md), [osiem scenariuszy porównawczych](docs/SCENARIOS.md). Raport można odtworzyć poleceniem `node scripts/export-scenarios.mjs`. Testy numeryczne nie są walidacją względem rzeczywistych skoków.

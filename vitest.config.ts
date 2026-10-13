@@ -1,2 +1,3 @@
 import {defineConfig} from 'vitest/config';
-export default defineConfig({test:{include:['tests/**/*.test.ts']}});
+import {buildMetadata} from './scripts/build-metadata.mjs';
+export default defineConfig({define:buildMetadata(),test:{include:['tests/**/*.test.ts']}});
