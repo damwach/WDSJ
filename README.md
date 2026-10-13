@@ -1,4 +1,4 @@
-# SKYLIFT 3D — 0.8 / iteracja 05
+# SKYLIFT 3D — 0.9 / laboratorium aerodynamiki
 
 Laboratorium najazdu i wybicia. Three.js + TypeScript + Vite; bez tekstur obrazkowych.
 
@@ -14,9 +14,9 @@ Do pracy lokalnej: sklonuj repozytorium, wejdź do jego folderu, uruchom `npm ci
 
 ## Uruchomienie bez instalacji
 
-Podgląd online działa pod adresem https://damwach.github.io/WDSJ/?v=0.8. Kamera „Skocznia” pokazuje pełny profil Wielkiej Krokwi; „Pokaz techniki” i „Zawodnik” pokazują ruch z bliska.
+Podgląd online działa pod adresem https://damwach.github.io/WDSJ/?v=0.9. Kamera „Skocznia” pokazuje pełny profil Wielkiej Krokwi; „Pokaz techniki” i „Zawodnik” pokazują ruch z bliska.
 
-Opcjonalnie pobierz `artifacts/SKYLIFT-0.8.html` na swój komputer i otwórz go w Chrome lub Edge. Plik zawiera cały kod, Three.js i style. Działa bez serwera, internetu i Node.js.
+Opcjonalnie pobierz `artifacts/SKYLIFT-0.9.html` na swój komputer i otwórz go w Chrome lub Edge. Plik zawiera cały kod, Three.js i style. Działa bez serwera, internetu i Node.js.
 
 Adres `localhost` dotyczy komputera, na którym działa przeglądarka. Serwer uruchomiony w środowisku chmurowym nie jest dostępny przez `localhost` na Twoim komputerze.
 
@@ -99,3 +99,9 @@ Rendering, pomiar odległości i kolizja współdzielą profil. P109, K125 i HS1
 Źródłowy [certyfikat PDF](docs/reference/HS140_2022.pdf), [dane profilu JSON](artifacts/hs140-profile.json) i [opis rekonstrukcji](docs/HILL-HS140.md) są w repozytorium. Dane można odtworzyć przez `node scripts/export-hill.mjs`; wykres przez `MPLCONFIGDIR=/tmp/skylift-mpl python3 scripts/plot-hill.py` (wymaga Matplotlib).
 
 Zmniejszono powierzchnię referencyjną ciała do 0.489 m² na podstawie rzutu geometrii. Dodano przybliżenie małego wydłużenia powierzchni oraz zmieniono szacunkowy trym/tłumienie momentu. Te parametry nie pochodzą z certyfikatu i nie są walidacją aerodynamiczną. Pomiar geometrii: `npm run measure:body`. Pokaz używa gestu 500 px/s od ostatnich 6.5 m; gracz nadal steruje gestem obu przycisków. Automatyczne hamowanie na wybiegu pozostaje modelem zredukowanym.
+
+## Tunel aerodynamiczny 0.9
+
+Przycisk „Tunel aerodynamiczny” otwiera osobny podgląd tej samej funkcji sił co lot i wstrzymuje skok. Suwaki zmieniają prędkość przepływu, ustawienie nart, pochylenie tułowia, otwarcie V i gęstość. Można porównać pozycje A/B i wyeksportować krzywą do CSV. Wyniki są prognozami niezwalidowanego modelu, nie eksperymentem ani CFD.
+
+Opis: [WIND-TUNNEL.md](docs/WIND-TUNNEL.md). Audyt fizyki i status dostępności danych naukowych: [AERODYNAMIC-AUDIT.md](docs/AERODYNAMIC-AUDIT.md). CI sprawdza także WebGL w Chromium; [CI.md](docs/CI.md) wyjaśnia zastąpienie błędnego workflow Deno.
