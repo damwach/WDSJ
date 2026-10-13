@@ -46,3 +46,14 @@ Nie wykonano: walidacji biomechaniki na motion capture, pomiarów sił, porówna
 - TypeScript/Vite i samodzielny HTML 0.7 przechodzą; dokument offline nie żąda zewnętrznych zasobów. Ruch przez oba fizycznie naciśnięte przyciski myszy nadal steruje napędem wybicia.
 - Deformowane powierzchnie stawów zweryfikowano dla 137214 wierzchołków w zakresie −2.3..0.15 rad: skończone pozycje i normalne jednostkowe. Bufory są ponownie używane.
 - Parametry ruchu są procedurami animacyjnymi; amortyzacja po kontakcie i upadek pozostają uproszczone. Nie wykonano kalibracji na motion capture ani pomiarach reakcji podłoża. Szczegóły: ATHLETE-v07.md i PHYSICS.md.
+
+## Wymiary z certyfikatu HS140 / 0.8
+
+- Źródłowy PDF obejrzano i odczytano; zachowano w `docs/reference/HS140_2022.pdf`. Poprawny zapis nachylenia wybiegu to 17°, mimo błędnego OCR „47°”. JSON profilu zawiera SHA-256 źródła.
+- 52/52 testy jednostkowe przeszły. Dziewięć kontroli geometrii obejmuje długości 97.80/77.00/6.50m, kąt 35°/11°, R90, K=(107.76,−62.37)m, wysokość progu 3.13m, U=−89.11m, promienie i kąty przy P/K/L/U, łuki 16/15m, wznios 17°, szerokości i linie P109/K125/HS140. Test deterministyczności obejmuje teraz 12s, czyli cały skok i początek wybiegu przy 30/144Hz.
+- 10/10 scenariuszy Chromium przeszło. Nowy test porównuje wierzchołki renderowanego najazdu/zeskoku z wysokością kolizji, szerokość toru 2.65m/K25m, położenie wieży d84m/q35m i nazwę obiektu. Panorama mieści A/T/K/L/U/koniec wybiegu także w 390×844. Brak błędów konsoli w sprawdzanych przebiegach.
+- Obejrzano zrzuty 01–15 oraz wykres metryczny SVG/PNG. Kamera zawodnika została dostosowana do węższego toru. Budynki, góry i teren poza profilem pozostają proceduralne.
+- Typowy pokaz w bezwietrznych warunkach modelu: prędkość przy progu około 26.99m/s, lądowanie 123.26m, lot 4.008s, normalna prędkość kontaktu 5.23m/s. Wynik nie jest pomiarem rzeczywistego zawodnika ani walidacją v0 z certyfikatu. Test potwierdza styczny kierunek prędkości po rozproszeniu normalnej energii i zatrzymanie przed końcem wybiegu.
+- Powierzchnia ciała została zmierzona z rzutu siatki: 0.488704/0.489008/0.489100m² przy kroku 4/2/1mm. Do sił przyjęto 0.489m², małe wydłużenie powierzchni i zmienione oszacowania trymu/tłumienia. Bez kalibracji eksperymentalnej; PHYSICS.md opisuje założenia.
+- Build TypeScript/Vite/Pages i samodzielny HTML 0.8 przechodzą. Dokument offline działa bez żądań HTTP. Gest obu przycisków nadal napędza wybicie.
+- Podane wielkości nie wyznaczają unikalnej krzywej: brak βS/b2, niespójne h/n, rozstaw belek i rL/l1/l2. Przyjęte interpolacje i priorytety danych są jawne w HILL-HS140.md; nie deklarujemy dokładnej reprodukcji pomiaru ani certyfikacji modelu gry.

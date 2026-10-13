@@ -2,6 +2,7 @@ import * as T from 'three';
 import { Athlete } from '../athlete/rig';
 import { createVenue } from '../world/venue';
 import type { Simulation } from '../physics/simulation';
+import {hill,certificate} from '../world/hill';
 
 export type CameraMode = 'overview' | 'broadcast' | 'athlete';
 
@@ -104,15 +105,25 @@ export class View {
     const target = new T.Vector3();
     const eye = new T.Vector3();
     if (this.mode === 'overview') {
-      target.set(60, -20, 0);
       const portrait = this.camera.aspect < .9;
-      if (portrait) target.y = -29;
-      eye.copy(target).add(portrait ? new T.Vector3(370, 170, 130) : new T.Vector3(86, 70, 246));
+      const p=hill.points;
+      const minX=p.A.x-6,maxX=p.outrunEnd.x+8,minY=p.U.y-2,maxY=p.A.y+5;
+      target.set((minX+maxX)/2,(minY+maxY)/2,0);
+      const direction=(portrait?new T.Vector3(1,.40,.35):new T.Vector3(.27,.23,1)).normalize();
+      const right=new T.Vector3(direction.z,0,-direction.x).normalize();
+      const up=new T.Vector3().crossVectors(direction,right);
+      const tanV=Math.tan(this.camera.fov*Math.PI/360),tanH=tanV*this.camera.aspect;
+      let distance=0;
+      for(const x of [minX,maxX])for(const y of [minY,maxY])for(const z of [-certificate.landing.uWidth/2,certificate.landing.uWidth/2]){
+        const offset=new T.Vector3(x,y,z).sub(target),depth=offset.dot(direction);
+        distance=Math.max(distance,depth+Math.abs(offset.dot(right))/(tanH*.85),depth+Math.abs(offset.dot(up))/(tanV*.72));
+      }
+      eye.copy(target).addScaledVector(direction,distance);
     } else if (this.mode === 'athlete') {
       target.set(s.x + .35, s.y + .7, s.z);
       // A closer lateral position shows joint motion while the sightline to the
       // boots still clears the near-side table guardrail.
-      eye.copy(target).add(new T.Vector3(1.3, 1.65, 4.1));
+      eye.copy(target).add(new T.Vector3(1.3, 1.95, 3.65));
     } else {
       // A consistent lateral camera keeps the upcoming table/landing in frame.
       const lead = s.phase === 'flight' ? 5 : 3.8;

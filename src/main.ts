@@ -2,6 +2,7 @@ import './style.css';
 import { Simulation, FixedClock, DT } from './physics/simulation';
 import { GestureInput } from './input/gesture';
 import { View, captureRenderState, type CameraMode } from './render/scene';
+import {certificate,distanceAt,inrunDistance} from './world/hill';
 
 const el = (id: string) => document.getElementById(id)!;
 const canvas = el('scene') as HTMLCanvasElement;
@@ -13,6 +14,8 @@ let last = 0;
 
 function startApp() {
   const view = new View(canvas);
+  el('hill-name').textContent=certificate.name;
+  el('hill-meta').textContent=`${certificate.place} · K ${certificate.k} / HS ${certificate.hs}`;
   let previousRenderState = captureRenderState(sim);
   const cameras = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-camera]'));
   const modes: CameraMode[] = ['overview', 'broadcast', 'athlete'];
@@ -61,9 +64,9 @@ function startApp() {
     el('phase').textContent = phases[sim.phase];
     const speed = sim.phase === 'ready' ? 0 : inAir ? Math.hypot(sim.vx, sim.vy) : sim.v;
     el('speed').innerHTML = `${(speed * 3.6).toFixed(1)} <small>km/h</small>`;
-    el('distance-label').textContent = sim.x > 0 ? 'OD PROGU' : 'DO PROGU';
     const completed=sim.phase==='landed'||sim.phase==='fallen';
-    el('distance').innerHTML = `${(completed?sim.resultDistance:Math.abs(sim.x)).toFixed(1)} <small>m</small>`;
+    el('distance-label').textContent=completed?'WYNIK':sim.x>0?'DYSTANS':'DO PROGU';
+    el('distance').innerHTML = `${(completed?sim.resultDistance:sim.x>0?distanceAt(sim.x):inrunDistance(sim.x)).toFixed(1)} <small>m</small>`;
     el('extension').style.width = `${sim.extension * 100}%`;
     el('extension-value').textContent = `${Math.round(sim.extension * 100)}%`;
     const windowOpen = sim.x > -8 && sim.phase === 'inrun';

@@ -1,16 +1,16 @@
-import {height,slope,landing,landingSlope} from '../world/hill';
+import {height,slope,landing,landingSlope,inrunCurvature,gatePosition,certificate,pisteWidth,distanceAt,hill} from '../world/hill';
 import type {Gesture} from '../input/gesture';
 import {aerodynamicForces,G,AIR_DENSITY,wrapAngle} from './aerodynamics';
 import {centerOfMassOffset,extensionAtHeight,rotatedOffset} from './biomechanics';
 import {jointPose} from '../athlete/pose';
 export const DT=1/120;
 const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
-interface Options {mass?:number;airDensity?:number;gravity?:number}
+interface Options {mass?:number;airDensity?:number;gravity?:number;gate?:number}
 export class Simulation {
   readonly mass:number;readonly airDensity:number;readonly gravity:number;
-  x=-40;y=height(-40);z=0;v=12;vx=0;vy=0;vz=0;
+  x=gatePosition(certificate.inrun.gates).x;y=height(this.x);z=0;v=0;vx=0;vy=0;vz=0;
   comX=0;comY=0;comZ=0;
-  pitch=Math.atan(slope(-40));omega=0;roll=0;rollRate=0;
+  pitch=Math.atan(slope(this.x));omega=0;roll=0;rollRate=0;
   extension=0;extensionRate=0;target=0;stroke=0;effort=0;eccentricity=0;
   normalVelocity=0;normalForce=0;takeoffImpulse=0;muscleWork=0;
   gestureDuration=0;gestureSpeed=0;private gestureUp=0;private gestureSide=0;
@@ -21,6 +21,7 @@ export class Simulation {
   aero={lift:0,drag:0,alpha:0};
   constructor(options:Options={}){
     this.options=options;this.mass=options.mass??78;this.airDensity=options.airDensity??AIR_DENSITY;this.gravity=options.gravity??G;
+    const start=gatePosition(options.gate??certificate.inrun.gates);this.x=start.x;this.y=start.y;this.pitch=Math.atan(slope(this.x));
     this.updateContactCom();
   }
   reset(demo=false){const options=this.options,wind=this.wind,crossWind=this.crossWind;Object.assign(this,new Simulation(options));this.wind=wind;this.crossWind=crossWind;this.demo=demo;this.phase='inrun';}
@@ -61,7 +62,7 @@ export class Simulation {
     const angle=Math.atan(slope(this.x));this.pitch=angle;
     const drag=.5*this.airDensity*.22*this.v*this.v;
     this.v+=(-this.gravity*Math.sin(angle)-.02*this.gravity*Math.cos(angle)-drag/this.mass)*DT;
-    if(this.demo&&this.x>-4.5)this.gesture({up:460*DT,side:0,duration:DT});
+    if(this.demo&&this.x>-6.5)this.gesture({up:500*DT,side:0,duration:DT});
     const h0=centerOfMassOffset(0).y,h1=centerOfMassOffset(1).y;
     const wantedH=centerOfMassOffset(this.target).y;
     const commandVelocity=clamp(this.gestureSpeed/120*(h1-h0),0,4.1);
@@ -69,7 +70,7 @@ export class Simulation {
     // Maximum force/work limit the actuator; extension is inverse FK of COM rise.
     const desiredVelocity=Math.min(Math.max(0,(wantedH-this.contactHeight)/.045),commandVelocity);
     const desiredAcceleration=(desiredVelocity-this.normalVelocity)/.040;
-    const curvature=(Math.atan(slope(this.x+.02))-Math.atan(slope(this.x-.02)))/.04*Math.cos(angle);
+    const curvature=inrunCurvature(this.x);
     const baseline=this.gravity*Math.cos(angle)+this.v*this.v*curvature;
     const maxForce=this.mass*this.gravity*3.4;
     const rawForce=this.mass*(baseline+desiredAcceleration);
@@ -120,9 +121,9 @@ export class Simulation {
       const angleError=Math.abs(wrapAngle(this.pitch-Math.atan(tangent)));
       const absorptionCapacity=this.mass*this.gravity*4*.45;
       const normalEnergy=.5*this.mass*this.impact*this.impact;
-      const inPiste=Math.abs(this.z)<(7.2+16*Math.min(1,Math.max(0,this.x)/100))/2;
+      const inPiste=Math.abs(this.z)<pisteWidth(this.x)/2;
       this.phase=this.x>0&&inPiste&&angleError<.55&&Math.abs(this.roll)<.4&&Math.abs(this.omega)<2.6&&normalEnergy<=absorptionCapacity?'landed':'fallen';
-      this.resultDistance=Math.max(0,this.x);
+      this.resultDistance=distanceAt(this.x);
       // Inelastic normal impulse: dissipate normal kinetic energy instead of turning it into forward speed.
       this.v=Math.max(0,(this.vx+tangent*this.vy)/Math.hypot(1,tangent));this.landingPose=1;
       this.vx=this.v/Math.hypot(1,tangent);this.vy=this.vx*tangent;this.vz=0;
@@ -131,7 +132,9 @@ export class Simulation {
   private stepOutrun(){
     this.aftermathTime+=DT;
     const tangent=this.x<0?slope(this.x):landingSlope(this.x),angle=Math.atan(tangent);
-    const friction=this.phase==='fallen'?.45:.055;
+    // Reduced automatic braking on the outrun; not a measured snow coefficient.
+    const braking=clamp((this.x-hill.points.U.x)/15,0,1);
+    const friction=this.phase==='fallen'?.45:.055+.245*braking;
     this.v=Math.max(0,this.v+(-this.gravity*Math.sin(angle)-friction*this.gravity*Math.cos(angle)-.5*this.airDensity*.55*this.v*this.v/this.mass)*DT);
     this.x+=this.v*Math.cos(angle)*DT;this.y=this.x<0?height(this.x):landing(this.x);
     this.pitch=angle;this.landingPose=1;this.updateContactCom();

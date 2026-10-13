@@ -1,10 +1,13 @@
 import * as THREE from 'three';
-import { height, landing } from './hill';
+import { height, landing, hill, certificate, pisteWidth, xAtDistance } from './hill';
 
 /** All dimensions are metres. The visible piste follows the simulation profile. */
 export function createVenue(): THREE.Group {
   const venue = new THREE.Group();
-  venue.name = 'alpine-ski-jump-venue';
+  venue.name = 'wielka-krokiew-hs140';
+  const inrunFrom=hill.points.A.x, trackHalf=certificate.inrun.width/2;
+  const pisteEnd=hill.points.outrunEnd.x, blendEnd=pisteEnd+8;
+  const stairZ=trackHalf+.60, stairRailZ=stairZ+.50;
   const snow = new THREE.MeshStandardMaterial({ color: '#eef5f9', roughness: .91 });
   const packed = new THREE.MeshStandardMaterial({ color: '#e5eff4', roughness: .73 });
   const ice = new THREE.MeshStandardMaterial({ color: '#8caebe', roughness: .37, metalness: .08 });
@@ -65,17 +68,18 @@ export function createVenue(): THREE.Group {
 
   // Keep the central snow corridor clear. Lateral contours rise into the forest.
   const terrainHeight = (x: number, z: number) => {
-    const base = landing(THREE.MathUtils.clamp(x, -125, 198)) - 1.3;
+    const front=landing(THREE.MathUtils.clamp(x, -125, blendEnd))-1.3;
+    const base=x<0?THREE.MathUtils.lerp(front,height(x)-8,THREE.MathUtils.smoothstep(-x,0,35)):front;
     const shoulder = Math.max(0, Math.abs(z) - 24);
     const rise = Math.min(26, shoulder * .075);
     return base + rise + Math.min(1, shoulder / 35) *
       (2.8 * Math.sin(x * .028 + z * .012) + 1.3 * Math.cos(z * .04 - x * .017));
   };
-  const terrainGeometry = new THREE.PlaneGeometry(700, 680, 115, 110);
+  const terrainGeometry = new THREE.PlaneGeometry(900, 680, 130, 110);
   terrainGeometry.rotateX(-Math.PI / 2);
   const terrainPositions = terrainGeometry.attributes.position;
   for (let i = 0; i < terrainPositions.count; i++) {
-    const x = terrainPositions.getX(i) + 50, z = terrainPositions.getZ(i);
+    const x = terrainPositions.getX(i) + 90, z = terrainPositions.getZ(i);
     terrainPositions.setXYZ(i, x, terrainHeight(x, z), z);
   }
   terrainGeometry.computeVertexNormals();
@@ -85,12 +89,12 @@ export function createVenue(): THREE.Group {
   venue.add(terrain);
 
   // The concrete trough gives the inrun a credible, legible silhouette in wide shots.
-  const deck = ribbon('inrun-deck', -66, 0, 3.8, x => height(x) - .4, concrete);
+  const deck = ribbon('inrun-deck', inrunFrom, 0, certificate.inrun.width, x => height(x) - .4, concrete);
   deck.castShadow = true;
-  ribbon('inrun-snow', -66, 0, 3.34, height, packed);
-  for (const z of [-1.78, 1.78]) {
+  ribbon('inrun-snow', inrunFrom, 0, certificate.inrun.width, height, packed);
+  for (const z of [-trackHalf, trackHalf]) {
     const sidePositions: number[] = [];
-    for (let x = -66; x < 0; x += .5) {
+    for (let x = inrunFrom; x < 0; x += .5) {
       const b = Math.min(0, x + .5);
       sidePositions.push(x, height(x) + .12, z, b, height(b) + .12, z, b, height(b) - .55, z,
         x, height(x) + .12, z, b, height(b) - .55, z, x, height(x) - .55, z);
@@ -102,7 +106,7 @@ export function createVenue(): THREE.Group {
     side.name = 'inrun-structural-side';
     side.castShadow = true;
     venue.add(side);
-    for (let x = -65; x < -.4; x += 2.5) {
+    for (let x = inrunFrom+.5; x < -.4; x += 2.5) {
       const b = Math.min(-.15, x + 2.5);
       beam(v(x, height(x) + .08, z), v(x, height(x) + .95, z), .032, rail, 'inrun-guardrail-post');
       beam(v(x, height(x) + .95, z), v(b, height(b) + .95, z), .037, rail, 'inrun-guardrail');
@@ -111,53 +115,53 @@ export function createVenue(): THREE.Group {
   }
   // Two narrow ice channels, with a bright inset rail at either edge.
   for (const z of [-.105, .105]) {
-    ribbon('inrun-ice-groove', -66, -.02, .065, x => height(x) + .005, ice, z);
-    for (const offset of [-.038, .038]) ribbon('groove-snow-edge', -66, -.02, .012, x => height(x) + .014, snow, z + offset);
+    ribbon('inrun-ice-groove', inrunFrom, -.02, .065, x => height(x) + .005, ice, z);
+    for (const offset of [-.038, .038]) ribbon('groove-snow-edge', inrunFrom, -.02, .012, x => height(x) + .014, snow, z + offset);
   }
-  for (let x = -61; x <= -5; x += 8) {
+  for (let x = inrunFrom+5; x <= -5; x += 8) {
     const baseY = terrainHeight(x, 0), deckY = height(x) - .5;
-    for (const z of [-1.5, 1.5]) {
+    for (const z of [-trackHalf+.12, trackHalf-.12]) {
       box('inrun-footing', x, baseY + .22, z, 1.2, .5, 1.2, concrete);
       beam(v(x, baseY + .45, z), v(x, deckY, z), .14, steel, 'inrun-support');
     }
-    beam(v(x, baseY + .6, -1.5), v(x, deckY - .1, 1.5), .08, steel);
-    beam(v(x, baseY + .6, 1.5), v(x, deckY - .1, -1.5), .08, steel);
-    beam(v(x, deckY, -1.7), v(x, deckY, 1.7), .13, darkSteel);
+    beam(v(x, baseY + .6, -trackHalf+.12), v(x, deckY - .1, trackHalf-.12), .08, steel);
+    beam(v(x, baseY + .6, trackHalf-.12), v(x, deckY - .1, -trackHalf+.12), .08, steel);
+    beam(v(x, deckY, -trackHalf), v(x, deckY, trackHalf), .13, darkSteel);
   }
   // A continuous access stair follows the inrun on the far side.
-  for (let x = -65.7; x < -1; x += .45) {
-    box('inrun-access-stair', x, height(x) - .13, 2.35, .46, .2, .9, concrete);
+  for (let x = inrunFrom+.3; x < -1; x += .45) {
+    box('inrun-access-stair', x, height(x) - .13, stairZ, .46, .2, .9, concrete);
   }
-  for (let x = -65; x < -1; x += 2.5) {
+  for (let x = inrunFrom+.5; x < -1; x += 2.5) {
     const b = Math.min(-.5, x + 2.5);
-    beam(v(x, height(x), 2.85), v(x, height(x) + .9, 2.85), .027, rail);
-    beam(v(x, height(x) + .9, 2.85), v(b, height(b) + .9, 2.85), .027, rail);
+    beam(v(x, height(x), stairRailZ), v(x, height(x) + .9, stairRailZ), .027, rail);
+    beam(v(x, height(x) + .9, stairRailZ), v(b, height(b) + .9, stairRailZ), .027, rail);
   }
-  box('red-takeoff-lip', -.07, -.155, 0, .14, .31, 3.8, red);
-  box('takeoff-table-face', -.09, -.46, 0, .13, .27, 3.8, navy);
-  for (const z of [-2.02, 2.02]) {
+  box('red-takeoff-lip', -.07, -.155, 0, .14, .31, certificate.inrun.width, red);
+  box('takeoff-table-face', -.09, -.46, 0, .13, .27, certificate.inrun.width, navy);
+  for (const z of [-trackHalf-.24, trackHalf+.24]) {
     beam(v(-.05, -.1, z), v(-.05, 1.45, z), .035, red, 'takeoff-edge-marker');
   }
 
-  const pisteWidth = (x: number) => 7.2 + Math.min(1, x / 100) * 16;
-  const pisteHeight = (x: number) => THREE.MathUtils.lerp(landing(x), terrainHeight(x, 0), THREE.MathUtils.smoothstep(x, 190, 198));
+  const pisteHeight = (x: number) => THREE.MathUtils.lerp(landing(x), terrainHeight(x, 0), THREE.MathUtils.smoothstep(x, pisteEnd, blendEnd));
   const bankHeight = (x: number, side: number, fraction: number) => {
     const z = side * (pisteWidth(x) / 2 + fraction * 4.2);
     return THREE.MathUtils.lerp(pisteHeight(x), terrainHeight(x, z) - .025, THREE.MathUtils.smoothstep(fraction, 0, 1));
   };
-  ribbon('landing-piste', 0, 190, pisteWidth, landing, packed);
-  ribbon('outrun-snow-blend', 190, 198, pisteWidth, pisteHeight, snow);
+  ribbon('landing-piste', 0, pisteEnd, pisteWidth, landing, packed);
+  ribbon('outrun-snow-blend', pisteEnd, blendEnd, pisteWidth, pisteHeight, snow);
   // Rounded snow shoulders close the piste into the surrounding terrain.
   for (const side of [-1, 1]) {
     const positions: number[] = [], indices: number[] = [];
-    const crossSections = 5;
-    for (let x = 0; x <= 198; x++) {
+    const crossSections = 5, bankSections=Math.ceil(blendEnd);
+    for (let i = 0; i <= bankSections; i++) {
+      const x=Math.min(i,blendEnd);
       for (let j = 0; j < crossSections; j++) {
         const fraction = j / (crossSections - 1);
         positions.push(x, bankHeight(x, side, fraction), side * (pisteWidth(x) / 2 + fraction * 4.2));
       }
     }
-    for (let x = 0; x < 198; x++) for (let j = 0; j < crossSections - 1; j++) {
+    for (let x = 0; x < bankSections; x++) for (let j = 0; j < crossSections - 1; j++) {
       const a = x * crossSections + j, b = a + crossSections;
       if (side > 0) indices.push(a, a + 1, b + 1, a, b + 1, b);
       else indices.push(a, b + 1, a + 1, a, b, b + 1);
@@ -173,7 +177,7 @@ export function createVenue(): THREE.Group {
   }
   const border = (side: number) => {
     const positions: number[] = [];
-    for (let x = 1; x < 188; x += 1) {
+    for (let x = 1; x < pisteEnd-1; x += 1) {
       const z1 = side * pisteWidth(x) / 2, z2 = side * pisteWidth(x + 1) / 2;
       const y1 = landing(x) + .015, y2 = landing(x + 1) + .015;
       positions.push(x, y1, z1 - .085, x, y1, z1 + .085, x + 1, y2, z2 + .085,
@@ -187,26 +191,28 @@ export function createVenue(): THREE.Group {
     venue.add(mesh);
   };
   border(-1); border(1);
+  ribbon('p-point-line',hill.points.P.x,hill.points.P.x+.12,pisteWidth(hill.points.P.x),x=>landing(x)+.018,blue,0,.12);
   // Distance stripes live on the same slope as the landing surface.
-  for (let x = 30; x <= 130; x += 5) {
-    const full = x === 90 || x === 110;
+  for (let distance = 50; distance <= 165; distance += 5) {
+    const x=xAtDistance(distance);
+    const full = distance === certificate.k || distance === certificate.hs;
     const width = pisteWidth(x);
     if (full) {
-      ribbon(x === 90 ? 'k-point-line' : 'hill-size-line', x, x + .17, width, p => landing(p) + .018, red, 0, .17);
+      ribbon(distance === certificate.k ? 'k-point-line' : 'hill-size-line', x, x + .17, width, p => landing(p) + .018, red, 0, .17);
     } else {
-      for (const side of [-1, 1]) ribbon('distance-marker', x, x + (x % 10 === 0 ? .13 : .09), x % 10 === 0 ? 2 : 1.05,
-        p => landing(p) + .018, blue, side * (width / 2 - (x % 10 === 0 ? 1 : .525)), .2);
+      for (const side of [-1, 1]) ribbon('distance-marker', x, x + (distance % 10 === 0 ? .13 : .09), distance % 10 === 0 ? 2 : 1.05,
+        p => landing(p) + .018, blue, side * (width / 2 - (distance % 10 === 0 ? 1 : .525)), .2);
     }
   }
   // Low perimeter boards leave the snowy slope visually dominant.
   for (const side of [-1, 1]) {
-    for (let x = 18; x <= 180; x += 6) {
+    for (let x = 18; x <= pisteEnd-6; x += 6) {
       const z = side * (pisteWidth(x) / 2 + 2.1);
       const nextZ = side * (pisteWidth(x + 6) / 2 + 2.1);
       const y = bankHeight(x, side, .5);
       beam(v(x, y - .2, z), v(x, y + .75, z), .045, steel, 'landing-fence-post');
       beam(v(x, y + .7, z), v(x + 6, bankHeight(x + 6, side, .5) + .7, nextZ), .035, rail, 'landing-fence');
-      if (x >= 66 && x <= 114) {
+      if (x >= hill.points.P.x-10 && x <= hill.points.L.x+6) {
         const board = box('venue-sponsor-board', x + 2.95, bankHeight(x + 2.95, side, .5) + .27, (z + nextZ) / 2, 5.6, .54, .09, (x / 6) % 3 === 0 ? red : navy);
         board.rotation.z = Math.atan((bankHeight(x + 5.75, side, .5) - bankHeight(x + .15, side, .5)) / 5.6);
       }
@@ -214,34 +220,59 @@ export function createVenue(): THREE.Group {
   }
 
   // Start house: a compact timber/steel pavilion aligned with the inrun platform.
-  const startX = -68.7, startY = height(-66);
+  const startX = inrunFrom-2.7, startY = height(inrunFrom);
   box('start-platform', startX, startY - .22, 0, 5.4, .44, 6.7, concrete);
-  box('start-house-body', -70.15, startY + 1.57, 1.3, 2.3, 3.1, 3.8, wood);
-  box('start-house-glazing', -68.96, startY + 1.85, 1.3, .05, 1.45, 3.35, glass);
-  box('start-house-roof', -69.7, startY + 3.25, 1.3, 3.7, .18, 5, darkSteel);
-  box('start-house-roof-snow', -69.7, startY + 3.37, 1.3, 3.8, .12, 5.1, snow);
-  for (const x of [-70.8, -66.4]) for (const z of [-2.6, 2.6]) {
+  box('start-house-body', inrunFrom-4.15, startY + 1.57, 1.3, 2.3, 3.1, 3.8, wood);
+  box('start-house-glazing', inrunFrom-2.96, startY + 1.85, 1.3, .05, 1.45, 3.35, glass);
+  box('start-house-roof', inrunFrom-3.7, startY + 3.25, 1.3, 3.7, .18, 5, darkSteel);
+  box('start-house-roof-snow', inrunFrom-3.7, startY + 3.37, 1.3, 3.8, .12, 5.1, snow);
+  for (const x of [inrunFrom-4.8, inrunFrom-.4]) for (const z of [-2.6, 2.6]) {
     const groundY = terrainHeight(x, z);
     box('start-tower-column', x, (startY + groundY) / 2, z, .4, startY - groundY, .4, steel);
     box('start-tower-footing', x, groundY + .25, z, 1.3, .5, 1.3, concrete);
   }
   for (const z of [-2.6, 2.6]) {
-    beam(v(-70.8, terrainHeight(-70.8, z) + .8, z), v(-66.4, startY - .2, z), .1, steel);
-    beam(v(-66.4, terrainHeight(-66.4, z) + .8, z), v(-70.8, startY - .2, z), .1, steel);
+    beam(v(inrunFrom-4.8, terrainHeight(inrunFrom-4.8, z) + .8, z), v(inrunFrom-.4, startY - .2, z), .1, steel);
+    beam(v(inrunFrom-.4, terrainHeight(inrunFrom-.4, z) + .8, z), v(inrunFrom-4.8, startY - .2, z), .1, steel);
   }
   for (const z of [-3.22, 3.22]) {
-    for (let x = -71.3; x <= -66.2; x += 1.3) beam(v(x, startY, z), v(x, startY + 1, z), .03, rail);
-    beam(v(-71.3, startY + 1, z), v(-66.05, startY + 1, z), .035, rail);
+    for (let x = inrunFrom-5.3; x <= inrunFrom-.2; x += 1.3) beam(v(x, startY, z), v(x, startY + 1, z), .03, rail);
+    beam(v(inrunFrom-5.3, startY + 1, z), v(inrunFrom-.05, startY + 1, z), .035, rail);
   }
+  // Gate band/endpoints come from e1/e2; gate seats use the reported tread size.
+  // The ambiguous 68cm pitch annotation is retained in certificate.ts, not
+  // silently used to stretch the 20.80m A--B band.
+  for(let gate=0;gate<certificate.inrun.gates;gate++){
+    const t=gate/(certificate.inrun.gates-1);
+    const x=THREE.MathUtils.lerp(hill.points.A.x,hill.points.B.x,t);
+    const seat=box('start-gate-seat',x,height(x)+.18,stairZ,
+      certificate.inrun.gateTread,.06,certificate.inrun.gateWidth,wood);
+    seat.rotation.z=-certificate.inrun.angle*Math.PI/180;
+  }
+  // Only d/q are survey constraints; the building itself is procedural scenery.
+  const judges=new THREE.Group();judges.name='judges-tower';
+  judges.position.set(certificate.judges.x,terrainHeight(certificate.judges.x,certificate.judges.lateralOffset),certificate.judges.lateralOffset);
+  venue.add(judges);
+  const judgesPart=(name:string,x:number,y:number,z:number,sx:number,sy:number,sz:number,material:THREE.Material)=>{
+    const part=new THREE.Mesh(boxGeometry,material);part.name=name;part.position.set(x,y,z);part.scale.set(sx,sy,sz);
+    part.castShadow=part.receiveShadow=true;judges.add(part);
+  };
+  judgesPart('judges-tower-base',0,6.4,0,4.8,12.8,7,concrete);
+  for(let floor=0;floor<5;floor++){
+    judgesPart('judges-window',0,1.6+floor*2.4,-3.51,4.2,1.6,.04,glass);
+    judgesPart('judges-floor-edge',0,.55+floor*2.4,-3.62,5.1,.14,.35,darkSteel);
+  }
+  judgesPart('judges-roof',0,13.2,0,5.6,.2,7.8,darkSteel);
+  judgesPart('judges-roof-snow',0,13.35,0,5.7,.12,7.9,snow);
   // Restrained spectator terraces; no unrelated structures inside the jumping corridor.
   for (let section = 0; section < 7; section++) for (let row = 0; row < 5; row++) {
-    const z = 19 + row * 1.35, x = 92 + section * 4;
+    const z = 19 + row * 1.35, x = hill.points.K.x-10 + section * 4;
     const topY = terrainHeight(x - 2, z) + row * .6 + .3;
     const bottomY = terrainHeight(x + 2, z) - .2;
     box('spectator-terrace', x, (topY + bottomY) / 2, z, 3.85, topY - bottomY, 1.35, concrete);
     box('spectator-bench', x, topY + .46, z + .18, 3.4, .14, .45, navy);
   }
-  for (const x of [89, 116]) {
+  for (const x of [hill.points.K.x-19, hill.points.K.x+8]) {
     const z = 26.7, groundY = terrainHeight(x, z);
     beam(v(x, groundY, z), v(x, groundY + 9, z), .13, steel, 'floodlight-column');
     box('floodlight-bar', x, groundY + 9, z, .25, .23, 3, darkSteel);
@@ -297,10 +328,11 @@ export function createVenue(): THREE.Group {
   for (let i = 0; i < treeCount; i++) {
     const side = i % 2 === 0 ? -1 : 1;
     const cluster = Math.floor(i / 11);
-    const centerX = -102 + (cluster % 10) * 28;
+    const centerX = inrunFrom-30 + (cluster % 10) * ((pisteEnd-inrunFrom+40)/9);
     const centerZ = 39 + Math.floor(cluster / 10) * 47;
     const x = centerX + (random() - .5) * 34;
-    const z = side * Math.max(30, centerZ + (random() - .5) * 29);
+    let z = side * Math.max(30, centerZ + (random() - .5) * 29);
+    if(Math.abs(x-certificate.judges.x)<10&&Math.abs(z-certificate.judges.lateralOffset)<12)z+=18;
     const y = terrainHeight(x, z);
     const treeHeight = 5.5 + random() * 7;
     const slimness = .76 + random() * .32;

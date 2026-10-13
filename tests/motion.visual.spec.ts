@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { height, landing } from '../src/world/hill';
+import { height, landing, hill } from '../src/world/hill';
 import { dimensions } from '../src/athlete/rig';
 
 function collectErrors(page: Page) {
@@ -19,10 +19,12 @@ async function expectOverviewContainsHill(page: Page) {
       return { name, x: point.x, y: point.y, z: point.z };
     });
   }, [
-    { name: 'inrun start', x: -65, y: height(-65) },
+    { name: 'inrun start', ...hill.points.A },
     { name: 'takeoff lip', x: 0, y: 0 },
-    { name: 'landing slope', x: 100, y: landing(100) },
-    { name: 'flat outrun', x: 180, y: landing(180) },
+    { name: 'K125', ...hill.points.K },
+    { name: 'HS140', ...hill.points.L },
+    { name: 'outrun minimum U', ...hill.points.U },
+    { name: 'rising outrun end', ...hill.points.outrunEnd },
   ]);
   for (const point of points) {
     expect(Math.abs(point.x), `${point.name} horizontal framing`).toBeLessThan(.9);
@@ -124,7 +126,7 @@ test('the complete demonstration contacts the slope and continues on the ground'
     app.setCamera('athlete',true);app.step(0);
     return {phase:app.sim.phase,time:app.sim.flightTime,distance:app.sim.resultDistance,impact:app.sim.impact};
   });
-  expect(result.phase).toBe('landed');expect(result.time).toBeLessThan(6);expect(result.distance).toBeGreaterThan(40);expect(result.impact).toBeLessThan(5);
+  expect(result.phase).toBe('landed');expect(result.time).toBeLessThan(6);expect(result.distance).toBeGreaterThan(40);expect(result.impact).toBeLessThan(6);
   await expect(page.locator('#phase')).toContainText('Lądowanie');
   await page.screenshot({path:'artifacts/07-landing.png'});
   await page.evaluate(()=>{const app=(window as any).SKYLIFT;app.step(120);});

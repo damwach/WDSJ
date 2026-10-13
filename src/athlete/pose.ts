@@ -1,6 +1,11 @@
 /** Kinematics in metres/radians. +X is forward, Y up; every bone keeps its length.
  * One pose definition is shared by the visible skeleton and the COM model. */
 export const dimensions = { thigh: .44, shin: .43, torso: .53, ski: 2.6 };
+/** Union of the procedural body's triangles projected into its chord plane
+ * (boots/skis/bindings excluded), 1mm grid: .4891m². This is geometry, not
+ * validation of lift/drag coefficients. See scripts/measure-body-area.mjs. */
+export const BODY_REFERENCE_AREA = .489;
+export const BODY_REFERENCE_SPAN = .452;
 export const ankleHeight = .115;
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;

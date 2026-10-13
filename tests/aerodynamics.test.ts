@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { aerodynamicForces, type Vector3Like } from '../src/physics/aerodynamics';
+import { aerodynamicForces, finiteSpanLiftSlope, type Vector3Like } from '../src/physics/aerodynamics';
+import {BODY_REFERENCE_AREA,BODY_REFERENCE_SPAN} from '../src/athlete/pose';
 
 const dot = (a: Vector3Like, b: Vector3Like) => a.x * b.x + a.y * b.y + a.z * b.z;
 const length = (v: Vector3Like) => Math.hypot(v.x, v.y, v.z);
@@ -12,6 +13,13 @@ const state = (velocity: Vector3Like = { x: 25, y: -3, z: 0 }) => ({
 });
 
 describe('dimensional aerodynamic forces', () => {
+  it('reduces lift slope for low aspect ratio rather than treating the body as a long wing',()=>{
+    const body=finiteSpanLiftSlope(BODY_REFERENCE_SPAN,BODY_REFERENCE_AREA);
+    expect(body).toBeGreaterThan(0);
+    expect(body).toBeLessThan(1);
+    expect(finiteSpanLiftSlope(.02,1)).toBeLessThan(body);
+    expect(finiteSpanLiftSlope(100,1)).toBeCloseTo(2*Math.PI,2);
+  });
   it('uses air-relative speed and dynamic pressure in SI units', () => {
     const input = { ...state(), wind: { x: -4, y: 1, z: 2 } };
     const u = subtract(input.velocity, input.wind);

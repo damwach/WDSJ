@@ -16,6 +16,7 @@ test('standalone HTML renders and responds without a server or Internet', async 
   const {version} = JSON.parse(await readFile('package.json', 'utf8'));
   await page.setContent(await readFile(`artifacts/SKYLIFT-${version.split('.').slice(0, 2).join('.')}.html`, 'utf8'));
   await page.waitForFunction(() => Boolean((window as any).SKYLIFT));
+  const startX=await page.evaluate(()=>(window as any).SKYLIFT.sim.x);
   await page.getByRole('button', { name: 'Pokaz techniki' }).click();
   await expect(page.locator('#phase')).toHaveText('Najazd');
   await page.evaluate(() => (window as any).SKYLIFT.step(180));
@@ -23,7 +24,7 @@ test('standalone HTML renders and responds without a server or Internet', async 
     const { sim, view } = (window as any).SKYLIFT;
     return { x: sim.x, phase: sim.phase, triangles: view.renderer.info.render.triangles };
   });
-  expect(result.x).toBeGreaterThan(-40);
+  expect(result.x).toBeGreaterThan(startX);
   expect(result.phase).toBe('inrun');
   expect(result.triangles).toBeGreaterThan(1000);
   await page.getByRole('button', { name: 'Zawodnik', exact: true }).click();

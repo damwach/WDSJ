@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DT, Simulation } from '../src/physics/simulation';
+import {certificate,hill,landingSlope} from '../src/world/hill';
 
 function advance(simulation: Simulation, seconds: number) {
   for (let i = 0; i < Math.round(seconds / DT); i++) simulation.step();
@@ -173,8 +174,17 @@ describe('observable takeoff and contact', () => {
     for(let i=0;i<2000&&(sim.phase==='inrun'||sim.phase==='flight');i++)sim.step();
     expect(sim.phase).toBe('landed');
     expect(sim.resultDistance).toBeGreaterThan(40);
-    expect(sim.resultDistance).toBeLessThan(120);
-    expect(sim.impact).toBeLessThan(5);
+    expect(sim.resultDistance).toBeLessThan(certificate.hs);
+    expect(sim.impact).toBeLessThan(Math.sqrt(8*sim.gravity*.45));
+    // The post-impact velocity is tangent to the actual certified hill model.
+    expect(sim.vy-landingSlope(sim.x)*sim.vx).toBeCloseTo(0,10);
     expect(sim.flightTime).toBeLessThan(6);
+  });
+  it('brakes to rest within the rising certified outrun', () => {
+    const sim=new Simulation();sim.reset(true);
+    for(let i=0;i<6000&&(sim.phase==='inrun'||sim.phase==='flight'||sim.v>.01);i++)sim.step();
+    expect(sim.phase).toBe('landed');
+    expect(sim.v).toBeLessThan(.01);
+    expect(sim.x).toBeLessThan(hill.points.outrunEnd.x);
   });
 });

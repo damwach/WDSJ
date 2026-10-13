@@ -1,3 +1,4 @@
+import {BODY_REFERENCE_AREA,BODY_REFERENCE_SPAN,dimensions} from '../athlete/pose';
 /** SI units throughout. These reduced-order polars are engineering estimates,
  * not wind-tunnel calibration of a particular athlete or ski. */
 export interface Vector3Like { x:number; y:number; z:number }
@@ -7,8 +8,16 @@ export interface AeroState {
 }
 export const G = 9.80665;
 export const AIR_DENSITY = 1.225;
+/** Estimated passive trim and damping; not inferred from the hill certificate. */
+export const TRIM_INCIDENCE = 6.5*Math.PI/180;
 export const wrapAngle = (angle:number) => Math.atan2(Math.sin(angle),Math.cos(angle));
 const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
+/** Helmbold finite-span lifting-plate estimate. Body geometry has low aspect
+ * ratio; it is not a high-aspect-ratio airfoil. This remains a reduced model. */
+export function finiteSpanLiftSlope(span:number,area:number){
+  const aspect=span*span/area;
+  return 2*Math.PI*aspect/(2+Math.sqrt(4+aspect*aspect));
+}
 export function aerodynamicForces(s:AeroState, options:{density?:number}={}) {
   const u={x:s.velocity.x-s.wind.x,y:s.velocity.y-s.wind.y,z:s.velocity.z-s.wind.z};
   const speed=Math.hypot(u.x,u.y,u.z), density=options.density??AIR_DENSITY;
@@ -25,8 +34,8 @@ export function aerodynamicForces(s:AeroState, options:{density?:number}={}) {
   const bodyChord={x:chord.x*Math.cos(beta)+normal.x*Math.sin(beta),y:chord.y*Math.cos(beta)+normal.y*Math.sin(beta),z:chord.z*Math.cos(beta)+normal.z*Math.sin(beta)};
   const bodyNormal={x:-chord.x*Math.sin(beta)+normal.x*Math.cos(beta),y:-chord.y*Math.sin(beta)+normal.y*Math.cos(beta),z:-chord.z*Math.sin(beta)+normal.z*Math.cos(beta)};
   const bodyAngle=Math.atan2(-dot3(u,bodyNormal),dot3(u,bodyChord));
-  const skiArea=2*2.6*.115, bodyArea=.70;
-  const surfaces=[{angle:alpha,normal,area:skiArea,slope:3.5,cd0:.075},{angle:bodyAngle,normal:bodyNormal,area:bodyArea,slope:2.6,cd0:.16}];
+  const skiArea=2*dimensions.ski*.115, bodyArea=BODY_REFERENCE_AREA;
+  const surfaces=[{angle:alpha,normal,area:skiArea,slope:3.5,cd0:.075},{angle:bodyAngle,normal:bodyNormal,area:bodyArea,slope:finiteSpanLiftSlope(BODY_REFERENCE_SPAN,bodyArea),cd0:.16}];
   let totalLift=0,totalDrag=0;
   for(const surface of surfaces){
     const a=surface.angle, absolute=Math.abs(a);
@@ -46,7 +55,7 @@ export function aerodynamicForces(s:AeroState, options:{density?:number}={}) {
   drag.x=-totalDrag*dir.x;drag.y=-totalDrag*dir.y;drag.z=-totalDrag*dir.z;
   // Aerodynamic moment q*S*c*Cm; angular damping uses nondimensional rate.
   const area=bodyArea+skiArea,referenceLength=1.45;
-  const cm=-.055*Math.sin(2*(alpha-(.18+.25*(1.27-s.bodyLean))))-3.0*s.omega*referenceLength/(2*speed);
+  const cm=-.055*Math.sin(2*(alpha-(TRIM_INCIDENCE+.25*(1.27-s.bodyLean))))-1.0*s.omega*referenceLength/(2*speed);
   return {drag,lift,force:{x:drag.x+lift.x,y:drag.y+lift.y,z:drag.z+lift.z},moment:q*area*referenceLength*cm,
     airSpeed:speed,dynamicPressure:q,alpha,cl:totalLift/(q*area),cd:totalDrag/(q*area)};
 }

@@ -1,4 +1,4 @@
-# SKYLIFT 3D — 0.7 / iteracja 04
+# SKYLIFT 3D — 0.8 / iteracja 05
 
 Laboratorium najazdu i wybicia. Three.js + TypeScript + Vite; bez tekstur obrazkowych.
 
@@ -14,9 +14,9 @@ Do pracy lokalnej: sklonuj repozytorium, wejdź do jego folderu, uruchom `npm ci
 
 ## Uruchomienie bez instalacji
 
-Podgląd online działa pod adresem https://damwach.github.io/WDSJ/?v=0.7. Wybierz „Pokaz techniki” i kamerę „Zawodnik”, aby obejrzeć ruch z bliska.
+Podgląd online działa pod adresem https://damwach.github.io/WDSJ/?v=0.8. Kamera „Skocznia” pokazuje pełny profil Wielkiej Krokwi; „Pokaz techniki” i „Zawodnik” pokazują ruch z bliska.
 
-Opcjonalnie pobierz `artifacts/SKYLIFT-0.7.html` na swój komputer i otwórz go w Chrome lub Edge. Plik zawiera cały kod, Three.js i style. Działa bez serwera, internetu i Node.js.
+Opcjonalnie pobierz `artifacts/SKYLIFT-0.8.html` na swój komputer i otwórz go w Chrome lub Edge. Plik zawiera cały kod, Three.js i style. Działa bez serwera, internetu i Node.js.
 
 Adres `localhost` dotyczy komputera, na którym działa przeglądarka. Serwer uruchomiony w środowisku chmurowym nie jest dostępny przez `localhost` na Twoim komputerze.
 
@@ -54,7 +54,7 @@ Zrzuty kolejnych faz trafiają do artifacts/. Test przeglądarkowy sprawdza bł�
 
 ## Zakres i ograniczenia
 
-Pierwsza iteracja koncentruje się na proporcjach, stałych długościach segmentów, płynnym wyproście i fragmencie skoczni. Wymiary: udo 44 cm, podudzie 43 cm, tułów 53 cm, narty około 2.6 m. Profil jest projektowym przybliżeniem, nie certyfikowaną skocznią FIS.
+Wymiary zawodnika: udo 44 cm, podudzie 43 cm, tułów 53 cm, narty około 2.6 m. Od 0.8 skocznia ma wymiary Wielkiej Krokwi według przekazanego certyfikatu FIS 105 / POL 1: K 125 / HS 140. Jeden metr odpowiada jednej jednostce sceny. Certyfikat nie jest pełnym pomiarem profilu; brakujące równania i wymiary terenu są rekonstrukcją, opisaną w [HILL-HS140.md](docs/HILL-HS140.md). Certyfikacja rzeczywistego obiektu nie jest certyfikacją modelu gry.
 
 Fizyka jest deterministyczna dla identycznych próbek na identycznych krokach. Wejście na żywo trafia do najbliższego kroku, bez pełnego systemu replayu. Przerwy klatek powyżej 250 ms są ograniczane. Rendering interpoluje prezentację między krokami 120 Hz, bez zmieniania stanu fizycznego.
 
@@ -87,3 +87,15 @@ Naprawa grawitacji dzielonej przez masę, fizyczny COM i napęd kontaktu, popraw
 - Załączoną v0.3 uruchomiono w Chromium i porównano sylwetkę oraz sekwencję wyprostu. Zachowano jej czytelność ruchu, bez kopiowania zmieniających się długości kości.
 
 Szczegóły porównania i ograniczeń animacji: [docs/ATHLETE-v07.md](docs/ATHLETE-v07.md).
+
+## Wymiary skoczni 0.8
+
+Najazd A–T 97.80 m, dolna belka B–T 77.00 m, nachylenie 35°, łuk R90 m, próg 6.50 m / 11°, wysokość progu nad śniegiem 3.13 m. Punkt K ma współrzędne (107.76, −62.37) m względem progu, a nie x=125. Szerokości: najazd 2.65 m, K 25.00 m, wybieg 27.50 m. Wyjście z zeskoku osiąga y=−89.11 m; wybieg ma 103 m rzutu poziomego i końcowe nachylenie pod górę 17°.
+
+Rendering, pomiar odległości i kolizja współdzielą profil. P109, K125 i HS140 są liniami na odpowiednich odcinkach zeskoku. Start następuje z postoju na najwyższej belce, a prędkość wynika z grawitacji i oporów. `v0=28.28m/s` zapisane w certyfikacie jest wartością referencyjną, nie sztucznie wymuszoną prędkością.
+
+![Rekonstrukcja metrycznego profilu](artifacts/hs140-profile.svg)
+
+Źródłowy [certyfikat PDF](docs/reference/HS140_2022.pdf), [dane profilu JSON](artifacts/hs140-profile.json) i [opis rekonstrukcji](docs/HILL-HS140.md) są w repozytorium. Dane można odtworzyć przez `node scripts/export-hill.mjs`; wykres przez `MPLCONFIGDIR=/tmp/skylift-mpl python3 scripts/plot-hill.py` (wymaga Matplotlib).
+
+Zmniejszono powierzchnię referencyjną ciała do 0.489 m² na podstawie rzutu geometrii. Dodano przybliżenie małego wydłużenia powierzchni oraz zmieniono szacunkowy trym/tłumienie momentu. Te parametry nie pochodzą z certyfikatu i nie są walidacją aerodynamiczną. Pomiar geometrii: `npm run measure:body`. Pokaz używa gestu 500 px/s od ostatnich 6.5 m; gracz nadal steruje gestem obu przycisków. Automatyczne hamowanie na wybiegu pozostaje modelem zredukowanym.
