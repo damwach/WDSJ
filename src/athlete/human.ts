@@ -8,7 +8,7 @@ type LoftOptions = { start?: number; arc?: number; offset?: number; segments?: n
   minY?: number; maxY?: number; shape?: 'torso' | 'pelvis' | 'thigh' | 'shin' | 'arm' | 'skull' | 'helmet' };
 const PI2 = Math.PI * 2;
 const gaussian = (x: number, center: number, scale: number) =>
-  Math.exp(-((x - center) / scale) ** 2);
+  Math.exp(-(((x - center) / scale) ** 2));
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
 
 function section(rings: Ring[], key: 'rx' | 'rz' | 'cx', height: number) {
@@ -228,11 +228,11 @@ export function makeHumanLimb(length:number,kind:LimbKind,side:-1|1){
     {shape:kind==='shin'?'shin':kind==='thigh'?'thigh':'arm'});
   const a=side*Math.PI/2;
   fabric(root,rings,leg?m.black:m.navy,kind+'-stretch-panel',{
-    shape:kind==='shin'?'shin':kind==='thigh'?'thigh':'arm',start:a-(leg?.28:.20),
-    arc:leg?.56:.40,offset:.001,minY:-length+.025,maxY:-.015
+    shape:kind==='shin'?'shin':kind==='thigh'?'thigh':'arm',start:a-(leg ? .28 : .20),
+    arc:leg ? .56 : .40,offset:.001,minY:-length+.025,maxY:-.015
   });
   fabric(root,rings,m.seam,kind+'-seam',{
-    shape:kind==='shin'?'shin':kind==='thigh'?'thigh':'arm',start:a-(leg?.30:.22),
+    shape:kind==='shin'?'shin':kind==='thigh'?'thigh':'arm',start:a-(leg ? .30 : .22),
     arc:.020,offset:.0017,minY:-length+.030,maxY:-.019,segments:3
   });
   if(kind==='upperArm'){
