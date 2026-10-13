@@ -1,0 +1,44 @@
+.physics-debugger{position:fixed;inset:0;z-index:35;display:grid;grid-template-rows:auto minmax(0,1fr);background:#091b29;color:#e8f4fa;overflow:hidden;font-family:Inter,Arial,sans-serif}
+.physics-debugger[hidden]{display:none!important}
+.physics-debug-head{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:17px 24px;border-bottom:1px solid #ffffff24;background:#0e2536}
+.physics-debug-head small{display:block;font-size:9px;letter-spacing:2px;color:#8fb5c9}
+.physics-debug-head h2{font-size:25px;font-weight:600;letter-spacing:-.6px;margin:4px 0}
+.physics-debug-head p{font-size:11px;color:#a3bdcc;margin:0;line-height:1.5}
+.physics-debugger button,.physics-debug-import{font:inherit;font-size:11px;border:1px solid #8caac04d;border-radius:4px;background:#214156;color:#e1edf5;padding:10px 13px;cursor:pointer}
+.physics-debugger button:disabled{cursor:default;opacity:.45}
+.physics-debug-close{white-space:nowrap;align-self:flex-start}
+.physics-debug-body{display:grid;grid-template-columns:minmax(0,1fr) 470px;min-height:0}
+.physics-debug-preview{position:relative;min-width:0;overflow:hidden;background:#a9bfd0}
+.physics-debug-preview>#scene{position:absolute!important;inset:0!important;width:100%!important;height:100%!important}
+.physics-debug-legend{position:absolute;left:17px;right:17px;top:16px;display:flex;flex-wrap:wrap;gap:7px 15px;font-size:10px;line-height:1.4;padding:10px 12px;background:#0c2635d9;border:1px solid #ffffff26;border-radius:4px;pointer-events:none}
+.physics-debug-legend span:nth-child(1){color:#61e6c5}.physics-debug-legend span:nth-child(2){color:#ffab71}.physics-debug-legend span:nth-child(3){color:#f4d16f}.physics-debug-legend span:nth-child(4){color:#cfa4ff}
+.physics-debug-legend small{width:100%;font-size:9px;color:#b6cdda}
+.physics-debug-caption{position:absolute;left:17px;right:17px;bottom:16px;padding:10px 12px;background:#0c2635d9;border:1px solid #ffffff26;border-radius:4px;font-size:10px;line-height:1.6;color:#c1d7e4;pointer-events:none}
+.physics-debug-caption span{color:#52dfe1}.physics-debug-caption b{color:#f8f4de;font-weight:400}
+.physics-debug-dock{overflow:auto;min-width:0;padding:18px 20px 25px;background:#102b3e;border-left:1px solid #ffffff24}
+.physics-debug-dock h3{font-size:13px;margin:0 0 9px;font-weight:600}
+.physics-debug-meta{font-size:10px;line-height:1.6;color:#9cb8c9;margin:5px 0 12px;overflow-wrap:anywhere}
+.physics-debug-select{display:block;width:100%;min-width:0;border:1px solid #9dc8db44;border-radius:4px;padding:9px;background:#0b2131;color:#e8f4fa;font-size:11px}
+.physics-debug-state{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:12px 0}
+.physics-debug-state>div{padding:10px 8px;background:#091d2bc7;border:1px solid #ffffff17;border-radius:4px}
+.physics-debug-state label{font-size:8px;color:#9cb8c9;display:block}.physics-debug-state strong{font-size:16px;font-weight:500;display:block;margin-top:4px;font-variant-numeric:tabular-nums}
+.physics-debug-state [data-phase]{font-size:11px;line-height:1.7}
+.physics-debug-seek{display:block;font-size:10px;color:#bed3df}
+.physics-debug-seek>span{display:flex;justify-content:space-between;gap:8px}
+.physics-debug-seek input{width:100%;margin:12px 0;accent-color:#55d4d9}
+.physics-debug-playback{display:flex;gap:7px;margin:0 0 12px}.physics-debug-playback button:first-child{flex:1;background:#28596b}
+.physics-debug-checks{display:flex;gap:16px;flex-wrap:wrap;font-size:10px;color:#bad3df;margin:8px 0 14px}.physics-debug-checks label{display:flex;gap:6px;align-items:center}.physics-debug-checks input{accent-color:#55d4d9}
+.physics-debug-validation{padding:10px 12px;border:1px solid #6ae3bb45;background:#133f3a55;border-radius:4px;font-size:10px;line-height:1.6;color:#b9e8da}
+.physics-debug-validation small{display:block;color:#a3bac8;font-size:9px;margin-top:4px}
+.physics-debug-validation[data-state=busy]{border-color:#8da9be4d;background:#123347;color:#c4dbe7}
+.physics-debug-validation[data-state=error]{border-color:#ef9c8059;background:#592f2d66;color:#ffcebe}
+.physics-debug-files{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}.physics-debug-files button,.physics-debug-import{flex:1;text-align:center;white-space:nowrap}
+.physics-debug-import input{display:none}.physics-debug-error{font-size:11px;line-height:1.6;color:#ffc8b9;padding:10px 11px;background:#632f324d;border:1px solid #fb8e7966;border-radius:4px;overflow-wrap:anywhere;margin:12px 0}
+.physics-debug-plot{margin:10px 0;padding:10px 11px 5px;background:#081e2cc2;border:1px solid #ffffff1a;border-radius:5px}
+.physics-debug-plot>div{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:10px;color:#bdd4e2}.physics-debug-plot output{color:#e8f4fa;font-variant-numeric:tabular-nums;white-space:nowrap}.physics-debug-plot svg{width:100%;display:block;height:90px}
+.physics-debug-note{font-size:9px;line-height:1.7;color:#91b0c3;margin:13px 0 0}
+.physics-debugger-empty{font-size:12px;color:#bed3e2;line-height:1.7;padding:18px;background:#0a2232;border:1px dashed #a1c7db55;border-radius:5px;margin:14px 0}
+.actions #open-debugger{border-color:#65d9cf66;color:#c6f0e9}
+@media(max-width:1000px){.physics-debug-body{grid-template-columns:minmax(0,1fr) 390px}.physics-debug-head{padding:14px 17px}.physics-debug-dock{padding:15px}.physics-debug-head p{max-width:500px}}
+@media(max-width:760px){.physics-debugger{display:flex;flex-direction:column;overflow:auto}.physics-debug-head{position:sticky;top:0;z-index:2;flex:none;padding:11px 12px;gap:9px}.physics-debug-head h2{font-size:21px}.physics-debug-head small{font-size:7px}.physics-debug-head p{font-size:9px}.physics-debug-close{padding:9px!important;font-size:9px!important}.physics-debug-body{display:flex;flex-direction:column;overflow:visible;flex:none}.physics-debug-preview{height:40svh;min-height:255px;max-height:420px;flex:none}.physics-debug-dock{overflow:visible;border-left:0;border-top:1px solid #ffffff24;padding:15px 13px 24px}.physics-debug-legend{top:10px;left:10px;right:10px;gap:6px 10px;padding:8px;font-size:9px}.physics-debug-legend small{font-size:8px}.physics-debug-caption{left:10px;right:10px;bottom:10px;padding:8px;font-size:8px}.physics-debug-state strong{font-size:15px}.physics-debug-state [data-phase]{font-size:10px}.physics-debug-plot svg{height:95px}}
+@media(max-width:650px){.actions #open-debugger{max-width:66px;white-space:normal;line-height:1.1;padding:0 7px;font-size:8px}.actions #start{padding:0 8px}.actions #start .primary span{margin-left:0}}

@@ -3,6 +3,8 @@ import { Simulation, FixedClock, DT } from './physics/simulation';
 import { GestureInput } from './input/gesture';
 import { View, captureRenderState, type CameraMode } from './render/scene';
 import { WindTunnelPanel } from './lab/panel';
+import { PhysicsDebuggerPanel } from './debug/panel';
+import { JumpRecorder, MAX_RECORDING_FRAMES } from './physics/recorder';
 import {certificate,distanceAt,inrunDistance} from './world/hill';
 
 const el = (id: string) => document.getElementById(id)!;
@@ -16,6 +18,31 @@ let last = 0;
 function startApp() {
   const view = new View(canvas);
   const tunnel = new WindTunnelPanel();
+  const recorder = new JumpRecorder(sim);
+  let preview: Simulation | undefined;
+  let previousCamera: CameraMode = view.mode;
+  const physicsDebugger = new PhysicsDebuggerPanel({
+    getRecording: () => recorder.recording,
+    getRecordings: () => recorder.history,
+    onOpen: () => {
+      tunnel.close(); input.clear(); clock.accumulator = 0;
+      previousCamera = view.mode;
+      setCamera('broadcast', true);
+    },
+    onClose: () => {
+      view.resize();
+      previousRenderState = captureRenderState(sim);
+      clock.accumulator = 0; input.clear();
+      setCamera(previousCamera, true);
+    },
+    onPreview: state => { preview = state; view.render(state); stats(state); },
+    onClearPreview: () => { preview = undefined; },
+    onLayout: (width, height) => {
+      view.renderer.setSize(width, height, false);
+      view.camera.aspect = width / height;
+      view.camera.updateProjectionMatrix();
+    },
+  }, view.scene);
   el('hill-name').textContent=certificate.name;
   el('hill-meta').textContent=`${certificate.place} · K ${certificate.k} / HS ${certificate.hs}`;
   let previousRenderState = captureRenderState(sim);
@@ -30,7 +57,8 @@ function startApp() {
     }
   }
   function reset(demo = false) {
-    sim.reset(demo);
+    physicsDebugger.close(); tunnel.close();
+    recorder.start(demo);
     previousRenderState = captureRenderState(sim);
     input.clear();
     clock.accumulator = 0;
@@ -42,12 +70,13 @@ function startApp() {
     paused = !paused;
     el('pause').textContent = paused ? 'Wznów' : 'Pauza';
   }
-  el('open-tunnel').onclick = () => tunnel.open();
+  el('open-tunnel').onclick = () => { physicsDebugger.close(); tunnel.open(); };
+  el('open-debugger').onclick = () => physicsDebugger.open();
   el('start').onclick = () => reset();
   el('demo').onclick = () => reset(true);
   el('pause').onclick = pause;
   const wind=el('wind') as HTMLInputElement;
-  wind.oninput=()=>{sim.wind=Number(wind.value);el('wind-value').textContent=`${sim.wind.toFixed(1)} m/s`;};
+  wind.oninput=()=>{const value=Number(wind.value);recorder.queueWind(value,sim.crossWind);el('wind-value').textContent=`${value.toFixed(1)} m/s`;};
   el('help').onclick = () => {
     el('help-panel').hidden = !el('help-panel').hidden;
     el('help').setAttribute('aria-expanded', String(!el('help-panel').hidden));
@@ -55,7 +84,9 @@ function startApp() {
   for (const button of cameras) button.onclick = () => setCamera(button.dataset.camera as CameraMode);
   window.addEventListener('keydown', event => {
     if (event.code === 'Escape' && tunnel.isOpen) { tunnel.close(); return; }
-    if (tunnel.isOpen) return;
+    if (event.code === 'Escape' && physicsDebugger.isOpen) { physicsDebugger.close(); return; }
+    if (tunnel.isOpen || physicsDebugger.isOpen) return;
+    if (['INPUT','SELECT','TEXTAREA'].includes((event.target as HTMLElement)?.tagName)) return;
     if (event.repeat || (event.target as HTMLElement)?.tagName === 'BUTTON' && event.code === 'Space') return;
     if (event.code === 'KeyR') reset();
     if (event.code === 'KeyC') setCamera(modes[(modes.indexOf(view.mode) + 1) % modes.length]);
@@ -64,7 +95,8 @@ function startApp() {
   const phases: Record<string, string> = {
     ready: 'Gotowy do najazdu', inrun: 'Najazd', flight: 'Lot · przejście do V', landed: 'Lądowanie · wybieg', fallen: 'Upadek · ślizg', invalid: 'Błąd stanu symulacji',
   };
-  function stats() {
+  function stats(simulation = sim) {
+    const sim = simulation;
     const inAir = sim.phase === 'flight';
     el('phase').textContent = phases[sim.phase];
     const speed = sim.phase === 'ready' ? 0 : inAir ? Math.hypot(sim.vx, sim.vy) : sim.v;
@@ -83,27 +115,44 @@ function startApp() {
       : inAir ? 'Lot · obserwuj pozycję ciała i nart'
       : sim.demo ? 'Pokaz techniki · automatyczne wybicie' : 'Zbliżasz się do progu · przygotuj wybicie';
   }
+  function checkRecordingState() {
+    // Existing developer tools can fabricate states outside the recorder's
+    // fresh-jump contract. Keep that explicit and never export a false replay.
+    if (recorder.active && !recorder.matchesCurrentState()) {
+      recorder.invalidate('Stan zmieniono poza dziennikiem wejścia. Rozpocznij nowy skok, aby go nagrać.');
+    }
+    if (recorder.active && recorder.frameCount >= MAX_RECORDING_FRAMES) recorder.finish();
+  }
+  function stepSimulation() {
+    checkRecordingState();
+    recorder.step();
+    if (recorder.active && (sim.phase === 'landed' || sim.phase === 'fallen') && sim.v <= .01) recorder.finish();
+  }
   function frame(time: number) {
     const dt = last ? (time - last) / 1000 : 0;
     last = time;
-    if (!paused && !tunnel.isOpen) {
-      for (const gesture of input.consume()) sim.gesture(gesture);
-      for (const motion of input.consumeMotion()) sim.trim(motion.up,motion.side);
+    if (!paused && !tunnel.isOpen && !physicsDebugger.isOpen) {
+      // Detect fabricated developer states before queuing this frame's mouse
+      // input; invalidating a recording must not discard the new gesture.
+      checkRecordingState();
+      for (const gesture of input.consume()) recorder.queueGesture(gesture);
+      for (const motion of input.consumeMotion()) recorder.queueTrim(motion.up,motion.side);
       clock.advance(dt, () => {
         previousRenderState = captureRenderState(sim);
-        sim.step();
+        stepSimulation();
       });
     } else input.clear();
-    if (paused || tunnel.isOpen) view.render(sim);
+    if (physicsDebugger.isOpen) view.render(preview ?? sim);
+    else if (paused || tunnel.isOpen) view.render(sim);
     else view.render(sim, previousRenderState, clock.accumulator / DT);
-    stats();
+    stats(physicsDebugger.isOpen ? preview ?? sim : sim);
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
-  Object.assign(window, { SKYLIFT: { sim, view, tunnel, reset, pause, setCamera,
+  Object.assign(window, { SKYLIFT: { sim, view, tunnel, recorder, debugger: physicsDebugger, reset, pause, setCamera,
     step: (n: number) => {
       paused = true; el('pause').textContent = 'Wznów';
-      for (let i = 0; i < n; i++) sim.step();
+      for (let i = 0; i < n; i++) stepSimulation();
       previousRenderState = captureRenderState(sim);
       clock.accumulator = 0;
       view.render(sim); stats();

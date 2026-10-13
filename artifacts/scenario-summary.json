@@ -1,0 +1,2001 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-10-13T18:31:06.214Z",
+  "sourceSha256": {
+    "src/physics/aerodynamics.ts": "3ec0c3f736ffe2a2dd87a3f45efa1ee21251b460055499e0adf4a88bcb706e8f",
+    "src/physics/biomechanics.ts": "658746a4a576c9a9358dd2302c7b50d7c28753aabd6dd18926789c65ca9def65",
+    "src/physics/simulation.ts": "3cfeb7ed0fc393824d71e8da1899e9745ef4595d1f1078a657f741770a6138d7",
+    "src/athlete/pose.ts": "d555b88f911013fe39d9d4536708e85896376acea8562c05a886c068158ebdf4",
+    "src/athlete/rig.ts": "1b3091dae3995f91ccaada2e458792e82a1caabca17bc56228bd5dad77781f58",
+    "src/world/hill.ts": "d04eea3f009a19a7a570d1e46a8ee4c3e1513e6e40b972e007b676bcf7be3bc6",
+    "src/world/certificate.ts": "484087304b5f4448f02dbb4b6bc39910344c46b01781ccd9b0a5d92a559c0bb0",
+    "src/physics/scenarios.ts": "1e98a9512447b11a8ad35fe7e81747a07fa92d09e85a6c1938a7e794855a1c38"
+  },
+  "status": "Calculations of an unvalidated reduced-order model; no measured trajectory or aerodynamic calibration.",
+  "comparison": "Same gate, mass, density, gravity, equipment and initial weather. Only the stated input/posture/wind disturbance changes.",
+  "workDefinition": "Positive work proxy of the reduced prismatic actuator, not measured muscle/joint work.",
+  "replayChecks": [
+    {
+      "scenario": "no-takeoff",
+      "exactMetrics": true,
+      "exactFinalState": true
+    },
+    {
+      "scenario": "nominal",
+      "exactMetrics": true,
+      "exactFinalState": true
+    },
+    {
+      "scenario": "early",
+      "exactMetrics": true,
+      "exactFinalState": true
+    },
+    {
+      "scenario": "late",
+      "exactMetrics": true,
+      "exactFinalState": true
+    },
+    {
+      "scenario": "excessive",
+      "exactMetrics": true,
+      "exactFinalState": true
+    },
+    {
+      "scenario": "changing-wind",
+      "exactMetrics": true,
+      "exactFinalState": true
+    },
+    {
+      "scenario": "upright-flight",
+      "exactMetrics": true,
+      "exactFinalState": true
+    },
+    {
+      "scenario": "flat-flight",
+      "exactMetrics": true,
+      "exactFinalState": true
+    }
+  ],
+  "runs": [
+    {
+      "schemaVersion": 1,
+      "scenario": {
+        "id": "no-takeoff",
+        "label": "Bez wybicia",
+        "description": "Najazd bez gestu; odlot z końca progu.",
+        "gesture": null
+      },
+      "configuration": {
+        "mass": 78,
+        "airDensity": 1.225,
+        "gravity": 9.80665,
+        "gate": 34,
+        "windX": 0,
+        "windZ": 0
+      },
+      "fixedStepSeconds": 0.008333333333333333,
+      "inputs": [],
+      "metrics": {
+        "phase": "landed",
+        "stopReason": "contact",
+        "ticks": 831,
+        "elapsedSeconds": 6.925000000000134,
+        "flightSeconds": 0.7083333333333333,
+        "resultDistanceM": 18.6875508503288,
+        "contactNormalSpeedMps": 4.167577423451873,
+        "takeoffImpulseNs": 2.309263891220326e-15,
+        "positiveActuatorWorkJ": 7.353015820780743e-14,
+        "peakPitchRateRadPerSecond": 0.12530962585476255,
+        "peakRollRateRadPerSecond": 0,
+        "peakNormalForceN": 1377.2316590993469,
+        "takeoffTimeSeconds": 6.216666666666765,
+        "takeoffXMetres": 0,
+        "takeoffPitchRad": -0.19198621771937624,
+        "takeoffPitchRateRadPerSecond": 0,
+        "contactPitchRad": -0.14353114032167935,
+        "contactPitchRateRadPerSecond": 0.12530962585476255,
+        "gestureUpPx": 0,
+        "gestureDurationSeconds": 0
+      },
+      "finalState": {
+        "comX": 18.767662699421603,
+        "comY": -5.001902294011802,
+        "comZ": 0,
+        "vx": 26.80969216195117,
+        "vy": -5.987228841741486,
+        "vz": 0,
+        "pitch": -0.14353114032167935,
+        "roll": 0,
+        "omega": 0.12530962585476255,
+        "rollRate": 0,
+        "bodyLean": 1.27
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": {
+        "id": "nominal",
+        "label": "Wybicie referencyjne",
+        "description": "500 px/s od x=−6.5 m, maksymalnie 120 px w górę. Nie jest wyznaczonym optimum.",
+        "gesture": {
+          "startX": -6.5,
+          "speedPxPerSecond": 500,
+          "maxUpPx": 120
+        }
+      },
+      "configuration": {
+        "mass": 78,
+        "airDensity": 1.225,
+        "gravity": 9.80665,
+        "gate": 34,
+        "windX": 0,
+        "windZ": 0
+      },
+      "fixedStepSeconds": 0.008333333333333333,
+      "inputs": [
+        {
+          "tick": 717,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 718,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 719,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 720,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 721,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 722,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 723,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 724,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 725,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 726,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 727,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 728,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 729,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 730,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 731,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 732,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 733,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 734,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 735,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 736,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 737,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 738,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 739,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 740,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 741,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 742,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 743,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 744,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 745,
+          "type": "gesture",
+          "up": 3.333333333333286,
+          "side": 0,
+          "duration": 0.006666666666666572
+        }
+      ],
+      "metrics": {
+        "phase": "landed",
+        "stopReason": "contact",
+        "ticks": 1227,
+        "elapsedSeconds": 10.22500000000006,
+        "flightSeconds": 4.008333333333322,
+        "resultDistanceM": 123.27800477068055,
+        "contactNormalSpeedMps": 5.228866801851205,
+        "takeoffImpulseNs": 105.33019829275476,
+        "positiveActuatorWorkJ": 243.3664140861831,
+        "peakPitchRateRadPerSecond": 0.3282493390501659,
+        "peakRollRateRadPerSecond": 0,
+        "peakNormalForceN": 2381.735716790102,
+        "takeoffTimeSeconds": 6.216666666666765,
+        "takeoffXMetres": 0,
+        "takeoffPitchRad": -0.19198621771937624,
+        "takeoffPitchRateRadPerSecond": 0.06373094162501217,
+        "contactPitchRad": -0.6012205250071841,
+        "contactPitchRateRadPerSecond": 0.16783674875209256,
+        "gestureUpPx": 120,
+        "gestureDurationSeconds": 0.23999999999999988
+      },
+      "finalState": {
+        "comX": 107.00100718044865,
+        "comY": -60.78382489772523,
+        "comZ": 0,
+        "vx": 30.95223505842027,
+        "vy": -21.360468051726148,
+        "vz": 0,
+        "pitch": -0.6012205250071841,
+        "roll": 0,
+        "omega": 0.16783674875209256,
+        "rollRate": 0,
+        "bodyLean": 1.27
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": {
+        "id": "early",
+        "label": "Wczesne wybicie",
+        "description": "Ta sama prędkość i limit długości gestu od x=−8 m.",
+        "gesture": {
+          "startX": -8,
+          "speedPxPerSecond": 500,
+          "maxUpPx": 120
+        }
+      },
+      "configuration": {
+        "mass": 78,
+        "airDensity": 1.225,
+        "gravity": 9.80665,
+        "gate": 34,
+        "windX": 0,
+        "windZ": 0
+      },
+      "fixedStepSeconds": 0.008333333333333333,
+      "inputs": [
+        {
+          "tick": 710,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 711,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 712,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 713,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 714,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 715,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 716,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 717,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 718,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 719,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 720,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 721,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 722,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 723,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 724,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 725,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 726,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 727,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 728,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 729,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 730,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 731,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 732,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 733,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 734,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 735,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 736,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 737,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 738,
+          "type": "gesture",
+          "up": 3.333333333333286,
+          "side": 0,
+          "duration": 0.006666666666666572
+        }
+      ],
+      "metrics": {
+        "phase": "landed",
+        "stopReason": "contact",
+        "ticks": 1229,
+        "elapsedSeconds": 10.241666666666726,
+        "flightSeconds": 4.02499999999999,
+        "resultDistanceM": 123.46991953633743,
+        "contactNormalSpeedMps": 5.305938551263048,
+        "takeoffImpulseNs": 100.02091920747931,
+        "positiveActuatorWorkJ": 290.86700858960364,
+        "peakPitchRateRadPerSecond": 0.33757199056173637,
+        "peakRollRateRadPerSecond": 0,
+        "peakNormalForceN": 2600.72358,
+        "takeoffTimeSeconds": 6.216666666666765,
+        "takeoffXMetres": -0.12311389134911399,
+        "takeoffPitchRad": -0.19198621771937624,
+        "takeoffPitchRateRadPerSecond": 0.07899166505811253,
+        "contactPitchRad": -0.6033982428977208,
+        "contactPitchRateRadPerSecond": 0.16392650300655293,
+        "gestureUpPx": 120,
+        "gestureDurationSeconds": 0.23999999999999988
+      },
+      "finalState": {
+        "comX": 107.08731252501792,
+        "comY": -60.82700921986752,
+        "comZ": 0,
+        "vx": 30.93631969883288,
+        "vy": -21.322569254524197,
+        "vz": 0,
+        "pitch": -0.6033982428977208,
+        "roll": 0,
+        "omega": 0.16392650300655293,
+        "rollRate": 0,
+        "bodyLean": 1.27
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": {
+        "id": "late",
+        "label": "Spóźnione wybicie",
+        "description": "Ten sam gest zaczyna się dopiero przy x=−1 m; kontakt ogranicza jego wykonanie.",
+        "gesture": {
+          "startX": -1,
+          "speedPxPerSecond": 500,
+          "maxUpPx": 120
+        }
+      },
+      "configuration": {
+        "mass": 78,
+        "airDensity": 1.225,
+        "gravity": 9.80665,
+        "gate": 34,
+        "windX": 0,
+        "windZ": 0
+      },
+      "fixedStepSeconds": 0.008333333333333333,
+      "inputs": [
+        {
+          "tick": 742,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 743,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 744,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 745,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        }
+      ],
+      "metrics": {
+        "phase": "landed",
+        "stopReason": "contact",
+        "ticks": 832,
+        "elapsedSeconds": 6.933333333333468,
+        "flightSeconds": 0.7166666666666666,
+        "resultDistanceM": 18.951556381005833,
+        "contactNormalSpeedMps": 4.081211246046923,
+        "takeoffImpulseNs": 4.61451187197474,
+        "positiveActuatorWorkJ": 0.7715829901032241,
+        "peakPitchRateRadPerSecond": 0.12383161653053003,
+        "peakRollRateRadPerSecond": 0,
+        "peakNormalForceN": 1377.2316590993469,
+        "takeoffTimeSeconds": 6.216666666666765,
+        "takeoffXMetres": 0,
+        "takeoffPitchRad": -0.19198621771937624,
+        "takeoffPitchRateRadPerSecond": 0.006587409964494004,
+        "contactPitchRad": -0.14018933774147857,
+        "contactPitchRateRadPerSecond": 0.12383161653053003,
+        "gestureUpPx": 16.666666666666668,
+        "gestureDurationSeconds": 0.03333333333333333
+      },
+      "finalState": {
+        "comX": 18.991730740535267,
+        "comY": -5.047317709071122,
+        "comZ": 0,
+        "vx": 26.809115360161922,
+        "vy": -6.064088536056673,
+        "vz": 0,
+        "pitch": -0.14018933774147857,
+        "roll": 0,
+        "omega": 0.12383161653053003,
+        "rollRate": 0,
+        "bodyLean": 1.27
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": {
+        "id": "excessive",
+        "label": "Przesadzone wybicie",
+        "description": "1200 px/s od x=−6.5 m, maksymalnie 180 px. Brak ruchu bocznego i gotowego obrotu.",
+        "gesture": {
+          "startX": -6.5,
+          "speedPxPerSecond": 1200,
+          "maxUpPx": 180
+        }
+      },
+      "configuration": {
+        "mass": 78,
+        "airDensity": 1.225,
+        "gravity": 9.80665,
+        "gate": 34,
+        "windX": 0,
+        "windZ": 0
+      },
+      "fixedStepSeconds": 0.008333333333333333,
+      "inputs": [
+        {
+          "tick": 717,
+          "type": "gesture",
+          "up": 10,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 718,
+          "type": "gesture",
+          "up": 10,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 719,
+          "type": "gesture",
+          "up": 10,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 720,
+          "type": "gesture",
+          "up": 10,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 721,
+          "type": "gesture",
+          "up": 10,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 722,
+          "type": "gesture",
+          "up": 10,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 723,
+          "type": "gesture",
+          "up": 10,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 724,
+          "type": "gesture",
+          "up": 10,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 725,
+          "type": "gesture",
+          "up": 10,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 726,
+          "type": "gesture",
+          "up": 10,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 727,
+          "type": "gesture",
+          "up": 10,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 728,
+          "type": "gesture",
+          "up": 10,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 729,
+          "type": "gesture",
+          "up": 10,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 730,
+          "type": "gesture",
+          "up": 10,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 731,
+          "type": "gesture",
+          "up": 10,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 732,
+          "type": "gesture",
+          "up": 10,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 733,
+          "type": "gesture",
+          "up": 10,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 734,
+          "type": "gesture",
+          "up": 10,
+          "side": 0,
+          "duration": 0.008333333333333333
+        }
+      ],
+      "metrics": {
+        "phase": "fallen",
+        "stopReason": "contact",
+        "ticks": 843,
+        "elapsedSeconds": 7.025000000000139,
+        "flightSeconds": 0.8916666666666659,
+        "resultDistanceM": 20.69642837582882,
+        "contactNormalSpeedMps": 6.578331901542984,
+        "takeoffImpulseNs": 219.2631891413074,
+        "positiveActuatorWorkJ": 500.02076098859516,
+        "peakPitchRateRadPerSecond": 1.682108709271914,
+        "peakRollRateRadPerSecond": 0,
+        "peakNormalForceN": 2600.72358,
+        "takeoffTimeSeconds": 6.133333333333428,
+        "takeoffXMetres": -2.3294670265296866,
+        "takeoffPitchRad": -0.19198621771937624,
+        "takeoffPitchRateRadPerSecond": -1.682108709271914,
+        "contactPitchRad": -0.6497929070911926,
+        "contactPitchRateRadPerSecond": 0.37445957725295387,
+        "gestureUpPx": 180,
+        "gestureDurationSeconds": 0.15
+      },
+      "finalState": {
+        "comX": 21.13174723766059,
+        "comY": -5.659387268680712,
+        "comZ": 0,
+        "vx": 26.577708779678485,
+        "vy": -6.52907360246937,
+        "vz": 0,
+        "pitch": -0.6497929070911926,
+        "roll": 0,
+        "omega": 0.37445957725295387,
+        "rollRate": 0,
+        "bodyLean": 1.27
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": {
+        "id": "changing-wind",
+        "label": "Zmienny wiatr",
+        "description": "Wybicie referencyjne; od 0.75 s lotu wiatr −2 m/s, od 1.75 s +2 m/s w osi X.",
+        "gesture": {
+          "startX": -6.5,
+          "speedPxPerSecond": 500,
+          "maxUpPx": 120
+        },
+        "windChanges": [
+          {
+            "atFlightSeconds": 0.75,
+            "x": -2,
+            "z": 0
+          },
+          {
+            "atFlightSeconds": 1.75,
+            "x": 2,
+            "z": 0
+          }
+        ]
+      },
+      "configuration": {
+        "mass": 78,
+        "airDensity": 1.225,
+        "gravity": 9.80665,
+        "gate": 34,
+        "windX": 0,
+        "windZ": 0
+      },
+      "fixedStepSeconds": 0.008333333333333333,
+      "inputs": [
+        {
+          "tick": 717,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 718,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 719,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 720,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 721,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 722,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 723,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 724,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 725,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 726,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 727,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 728,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 729,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 730,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 731,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 732,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 733,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 734,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 735,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 736,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 737,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 738,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 739,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 740,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 741,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 742,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 743,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 744,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 745,
+          "type": "gesture",
+          "up": 3.333333333333286,
+          "side": 0,
+          "duration": 0.006666666666666572
+        },
+        {
+          "tick": 836,
+          "type": "wind",
+          "x": -2,
+          "z": 0
+        },
+        {
+          "tick": 956,
+          "type": "wind",
+          "x": 2,
+          "z": 0
+        }
+      ],
+      "metrics": {
+        "phase": "landed",
+        "stopReason": "contact",
+        "ticks": 1231,
+        "elapsedSeconds": 10.258333333333391,
+        "flightSeconds": 4.041666666666657,
+        "resultDistanceM": 124.23270774946856,
+        "contactNormalSpeedMps": 5.775629800231332,
+        "takeoffImpulseNs": 105.33019829275476,
+        "positiveActuatorWorkJ": 243.3664140861831,
+        "peakPitchRateRadPerSecond": 0.30899756439471154,
+        "peakRollRateRadPerSecond": 0,
+        "peakNormalForceN": 2381.735716790102,
+        "takeoffTimeSeconds": 6.216666666666765,
+        "takeoffXMetres": 0,
+        "takeoffPitchRad": -0.19198621771937624,
+        "takeoffPitchRateRadPerSecond": 0.06373094162501217,
+        "contactPitchRad": -0.6476012838601002,
+        "contactPitchRateRadPerSecond": 0.1701103208483878,
+        "gestureUpPx": 120,
+        "gestureDurationSeconds": 0.23999999999999988
+      },
+      "finalState": {
+        "comX": 107.82940940653481,
+        "comY": -61.36107410496737,
+        "comZ": 0,
+        "vx": 31.35758268596026,
+        "vy": -21.503233695307088,
+        "vz": 0,
+        "pitch": -0.6476012838601002,
+        "roll": 0,
+        "omega": 0.1701103208483878,
+        "rollRate": 0,
+        "bodyLean": 1.27
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": {
+        "id": "upright-flight",
+        "label": "Bardziej pionowy tułów",
+        "description": "Wybicie referencyjne; od 0.6 s lotu gest 1000 px/s zmierza do pochylenia tułowia 1.05 rad od lokalnego pionu.",
+        "gesture": {
+          "startX": -6.5,
+          "speedPxPerSecond": 500,
+          "maxUpPx": 120
+        },
+        "flightTrim": {
+          "startFlightSeconds": 0.6,
+          "targetBodyLeanRad": 1.05,
+          "speedPxPerSecond": 1000
+        }
+      },
+      "configuration": {
+        "mass": 78,
+        "airDensity": 1.225,
+        "gravity": 9.80665,
+        "gate": 34,
+        "windX": 0,
+        "windZ": 0
+      },
+      "fixedStepSeconds": 0.008333333333333333,
+      "inputs": [
+        {
+          "tick": 717,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 718,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 719,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 720,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 721,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 722,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 723,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 724,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 725,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 726,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 727,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 728,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 729,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 730,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 731,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 732,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 733,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 734,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 735,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 736,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 737,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 738,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 739,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 740,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 741,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 742,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 743,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 744,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 745,
+          "type": "gesture",
+          "up": 3.333333333333286,
+          "side": 0,
+          "duration": 0.006666666666666572
+        },
+        {
+          "tick": 818,
+          "type": "trim",
+          "up": -8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 819,
+          "type": "trim",
+          "up": -8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 820,
+          "type": "trim",
+          "up": -8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 821,
+          "type": "trim",
+          "up": -8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 822,
+          "type": "trim",
+          "up": -8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 823,
+          "type": "trim",
+          "up": -8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 824,
+          "type": "trim",
+          "up": -8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 825,
+          "type": "trim",
+          "up": -8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 826,
+          "type": "trim",
+          "up": -8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 827,
+          "type": "trim",
+          "up": -8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 828,
+          "type": "trim",
+          "up": -8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 829,
+          "type": "trim",
+          "up": -8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 830,
+          "type": "trim",
+          "up": -8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 831,
+          "type": "trim",
+          "up": -8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 832,
+          "type": "trim",
+          "up": -8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 833,
+          "type": "trim",
+          "up": -8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 834,
+          "type": "trim",
+          "up": -8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 835,
+          "type": "trim",
+          "up": -8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 836,
+          "type": "trim",
+          "up": -8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 837,
+          "type": "trim",
+          "up": -8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 838,
+          "type": "trim",
+          "up": -8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 839,
+          "type": "trim",
+          "up": -8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 840,
+          "type": "trim",
+          "up": -8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 841,
+          "type": "trim",
+          "up": -8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 842,
+          "type": "trim",
+          "up": -8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 843,
+          "type": "trim",
+          "up": -8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 844,
+          "type": "trim",
+          "up": -3.3333333333340764,
+          "side": 0
+        }
+      ],
+      "metrics": {
+        "phase": "fallen",
+        "stopReason": "contact",
+        "ticks": 1400,
+        "elapsedSeconds": 11.666666666666645,
+        "flightSeconds": 5.450000000000061,
+        "resultDistanceM": 167.86950643754582,
+        "contactNormalSpeedMps": 11.198364488020937,
+        "takeoffImpulseNs": 105.33019829275476,
+        "positiveActuatorWorkJ": 243.3664140861831,
+        "peakPitchRateRadPerSecond": 0.23085999636455332,
+        "peakRollRateRadPerSecond": 0,
+        "peakNormalForceN": 2381.735716790102,
+        "takeoffTimeSeconds": 6.216666666666765,
+        "takeoffXMetres": 0,
+        "takeoffPitchRad": -0.19198621771937624,
+        "takeoffPitchRateRadPerSecond": 0.06373094162501217,
+        "contactPitchRad": -0.4661766553773138,
+        "contactPitchRateRadPerSecond": 0.17600624346946053,
+        "gestureUpPx": 120,
+        "gestureDurationSeconds": 0.23999999999999988
+      },
+      "finalState": {
+        "comX": 145.89068796477514,
+        "comY": -81.98719451192855,
+        "comZ": 0,
+        "vx": 32.710254053373575,
+        "vy": -11.838739898942903,
+        "vz": 0,
+        "pitch": -0.4661766553773138,
+        "roll": 0,
+        "omega": 0.17600624346946053,
+        "rollRate": 0,
+        "bodyLean": 1.05
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": {
+        "id": "flat-flight",
+        "label": "Bardziej płaski tułów",
+        "description": "Wybicie referencyjne; od 0.6 s lotu gest 1000 px/s zmierza do pochylenia tułowia 1.42 rad od lokalnego pionu.",
+        "gesture": {
+          "startX": -6.5,
+          "speedPxPerSecond": 500,
+          "maxUpPx": 120
+        },
+        "flightTrim": {
+          "startFlightSeconds": 0.6,
+          "targetBodyLeanRad": 1.42,
+          "speedPxPerSecond": 1000
+        }
+      },
+      "configuration": {
+        "mass": 78,
+        "airDensity": 1.225,
+        "gravity": 9.80665,
+        "gate": 34,
+        "windX": 0,
+        "windZ": 0
+      },
+      "fixedStepSeconds": 0.008333333333333333,
+      "inputs": [
+        {
+          "tick": 717,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 718,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 719,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 720,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 721,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 722,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 723,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 724,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 725,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 726,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 727,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 728,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 729,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 730,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 731,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 732,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 733,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 734,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 735,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 736,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 737,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 738,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 739,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 740,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 741,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 742,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 743,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 744,
+          "type": "gesture",
+          "up": 4.166666666666667,
+          "side": 0,
+          "duration": 0.008333333333333333
+        },
+        {
+          "tick": 745,
+          "type": "gesture",
+          "up": 3.333333333333286,
+          "side": 0,
+          "duration": 0.006666666666666572
+        },
+        {
+          "tick": 818,
+          "type": "trim",
+          "up": 8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 819,
+          "type": "trim",
+          "up": 8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 820,
+          "type": "trim",
+          "up": 8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 821,
+          "type": "trim",
+          "up": 8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 822,
+          "type": "trim",
+          "up": 8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 823,
+          "type": "trim",
+          "up": 8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 824,
+          "type": "trim",
+          "up": 8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 825,
+          "type": "trim",
+          "up": 8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 826,
+          "type": "trim",
+          "up": 8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 827,
+          "type": "trim",
+          "up": 8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 828,
+          "type": "trim",
+          "up": 8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 829,
+          "type": "trim",
+          "up": 8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 830,
+          "type": "trim",
+          "up": 8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 831,
+          "type": "trim",
+          "up": 8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 832,
+          "type": "trim",
+          "up": 8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 833,
+          "type": "trim",
+          "up": 8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 834,
+          "type": "trim",
+          "up": 8.333333333333334,
+          "side": 0
+        },
+        {
+          "tick": 835,
+          "type": "trim",
+          "up": 8.333333333333334,
+          "side": 0
+        }
+      ],
+      "metrics": {
+        "phase": "landed",
+        "stopReason": "contact",
+        "ticks": 1151,
+        "elapsedSeconds": 9.591666666666763,
+        "flightSeconds": 3.3749999999999907,
+        "resultDistanceM": 101.35442895963173,
+        "contactNormalSpeedMps": 3.2876944473590215,
+        "takeoffImpulseNs": 105.33019829275476,
+        "positiveActuatorWorkJ": 243.3664140861831,
+        "peakPitchRateRadPerSecond": 0.36965612596397723,
+        "peakRollRateRadPerSecond": 0,
+        "peakNormalForceN": 2381.735716790102,
+        "takeoffTimeSeconds": 6.216666666666765,
+        "takeoffXMetres": 0,
+        "takeoffPitchRad": -0.19198621771937624,
+        "takeoffPitchRateRadPerSecond": 0.06373094162501217,
+        "contactPitchRad": -0.6568595397450453,
+        "contactPitchRateRadPerSecond": 0.13516192928318888,
+        "gestureUpPx": 120,
+        "gestureDurationSeconds": 0.23999999999999988
+      },
+      "finalState": {
+        "comX": 89.35079305818408,
+        "comY": -47.754585811523015,
+        "comZ": 0,
+        "vx": 28.800054746208517,
+        "vy": -22.599379353385626,
+        "vz": 0,
+        "pitch": -0.6568595397450453,
+        "roll": 0,
+        "omega": 0.13516192928318888,
+        "rollRate": 0,
+        "bodyLean": 1.4199999999999995
+      }
+    }
+  ]
+}

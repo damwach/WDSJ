@@ -67,3 +67,11 @@ Testy Chromium porównują widoczne kąty tułowia i obu nart z parametrami obli
 CI Deno zastąpiono kontrolą Node/TypeScript/Vitest/Playwright, po odtworzeniu 63 diagnostyk lintera na jego historycznym commicie. Rzeczywiste dwa zbędne importy usunięto. Dokładny opis i wyniki dostępności źródeł: [CI.md](CI.md), [AERODYNAMIC-AUDIT.md](AERODYNAMIC-AUDIT.md).
 
 Wynik lokalny: build TypeScript/standalone poprawny, **61/61 testów jednostkowych i 14/14 testów Chromium/WebGL**. Testy tunelu nie wykryły błędów strony ani konsoli. Sprawdzono zrzuty desktop i telefon. To weryfikacja programu, nie walidacja aerodynamiczna.
+
+## 0.10 — rejestrator, replay i Physics Debugger
+
+Build produkcyjny i standalone przechodzą. 96 testów jednostkowych przechodzi, w tym 20 rejestratora i 15 porównań scenariuszy. 18 przypadków Chromium sprawdzono lokalnie: w pierwszym pełnym przebiegu 14 przeszło, cztery regresje zostały naprawione i ich powtórzenie przeszło. Poprawki dotyczą wykrywania sztucznej zmiany stanu debugowego przed kolejkowaniem nowych gestów oraz właściwego zakresu selektorów eksportu przy dwóch dialogach. Nie wyłączono żadnego sprawdzenia. Zdalne CI uruchamia cały zestaw ponownie.
+
+Replay w tym samym silniku daje maksymalną różnicę 0, przy tolerancji absolutnej 10⁻⁹ na każde pole. 243 000 skalarnych wartości w 5400 krokach pozostało identycznych bitowo po dodaniu diagnostyki. Testy debuggera potwierdzają niezmieniony aktywny skok podczas przewijania, odtwarzania, pobierania/wczytywania JSON, wyboru historii i pracy na telefonie. Obejrzano `artifacts/debugger-*.png`.
+
+Osiem scenariuszy ma identyczne warunki początkowe; raport zawiera wejścia i miary wybicia, kontaktu oraz rotacji. Wczesny gest w tym zestawie nie daje kary dystansu. Wyniki nie stanowią walidacji doświadczalnej, a model nie został dostrojony pod ich kolejność. Szczegóły: [RECORDER.md](RECORDER.md), [DEBUGGER.md](DEBUGGER.md), [SCENARIOS.md](SCENARIOS.md).

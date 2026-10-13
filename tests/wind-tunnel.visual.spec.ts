@@ -131,7 +131,7 @@ test('A/B preserves conditions and CSV contains reproducible polar settings', as
   await page.locator('[data-compare="B"]').click();
   await expect(page.locator('[data-comparison]')).toContainText('tułów 73.0° · V 20.0°');
   await expect(page.locator('[data-comparison]')).toContainText('tułów 50.0° · V 0.0°');
-  const download = page.waitForEvent('download'); await page.locator('[data-export]').click();
+  const download = page.waitForEvent('download'); await page.locator('#wind-tunnel [data-export]').click();
   const file = await download;
   expect(file.suggestedFilename()).toBe('skylift-wind-tunnel.csv');
   const rows = (await readFile((await file.path())!, 'utf8')).trim().split('\n');
@@ -162,7 +162,7 @@ test('portrait layout keeps the complete specimen and controls within the viewpo
   });
   expect(overflow).toBeLessThanOrEqual(1);
   await page.screenshot({ path: 'artifacts/tunnel-mobile.png' });
-  await page.locator('[data-export]').scrollIntoViewIfNeeded();
+  await page.locator('#wind-tunnel [data-export]').scrollIntoViewIfNeeded();
   await page.screenshot({ path: 'artifacts/tunnel-mobile-controls.png' });
   expect(errors).toEqual([]);
 });
