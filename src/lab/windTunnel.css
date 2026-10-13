@@ -50,3 +50,9 @@
  .wind-controls{padding:17px}
  .wind-actions{gap:8px}
 }
+
+.actions #open-tunnel{border-color:#4fbbd88a;color:#d0ecf7}
+@media(max-width:650px){
+ .actions #open-tunnel{max-width:79px;white-space:normal;line-height:1.15;font-size:8px}
+ .actions #demo{max-width:78px;white-space:normal;line-height:1.15}
+}
