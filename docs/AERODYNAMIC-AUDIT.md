@@ -73,3 +73,7 @@ Nie obchodzono proxy, nie wyłączano TLS i nie przedstawiano treści zablokowan
 6. **Ocenić grywalność osobno.** Rejestrować powtarzalne scenariusze identycznych wejść oraz rzeczywiste próby graczy. Strojenie czułości gestu, zakresów celu pozy i prezentacji można wykonywać bez zmiany tabel aerodynamicznych. Nie dopisywać sił, aby uzyskać oczekiwany wynik.
 
 Do czasu ukończenia tych porównań wszystkie charakterystyki aerodynamiczne w tunelu są obliczeniami niezwalidowanego modelu zredukowanego. Certyfikat skoczni określa geometrię i parametry referencyjne, a nie aerodynamikę zawodnika.
+
+## Uzupełnienie dla Milestone 1 / 0.11
+
+Opis powyżej dotyczy bazowej 0.8 i PR #1. W 0.11 oddzielne orientacje obu nart zmieniają ich kąt natarcia, normalne, siły i momenty względem mocowania. V ma teraz także wpływ przez geometrię, więc wcześniejszy wniosek o dokładnej niezmienności Cd/Cm nie opisuje już tej gałęzi. Współczynniki polarnych funkcji nie zostały zmienione ani dopasowane do dystansu. Moment całego układu nadal jest estymatą, a jego podział nie zastępuje eksperymentalnego pomiaru momentów ciała i wyposażenia.

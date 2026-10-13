@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      preview_ref:
+        description: Commit SHA or ref to preview; leave empty to publish this workflow's commit
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -13,14 +18,32 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  revision:
+    name: Select one immutable commit
+    runs-on: ubuntu-24.04
+    outputs:
+      sha: ${{ steps.commit.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.preview_ref || github.sha }}
+      - name: Pin the selected revision for validation and build
+        id: commit
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
   validate:
+    needs: revision
     uses: ./.github/workflows/game-checks.yml
+    with:
+      ref: ${{ needs.revision.outputs.sha }}
 
   build:
-    needs: validate
+    needs: [revision, validate]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.revision.outputs.sha }}
       - uses: actions/setup-node@v7
         with:
           node-version: '22'

@@ -1,0 +1,14 @@
+{
+  "status": "Unvalidated reduced-order model, not experimental results",
+  "phase": "landed",
+  "distanceM": 107.41661933775983,
+  "impactNormalMps": 3.632278137710257,
+  "flightSeconds": 3.54999999999999,
+  "maxHeelRiseM": 0.05492520304390348,
+  "landingPoint": {
+    "x": 94.61741645664509,
+    "y": -52.938247359607175,
+    "z": -0.1624820893509025
+  },
+  "maxGroundPitchStepRad": 0.0030971784890218013
+}

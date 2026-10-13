@@ -1,13 +1,15 @@
 import * as T from 'three';
 import { Athlete } from '../athlete/rig';
 import { centerOfMassOffset } from '../physics/biomechanics';
+import { DEFAULT_EQUIPMENT } from '../equipment/config';
+import { createBindingSystemState, heelGeometry, maximumHeelAngleRad } from '../equipment/model';
 import { DEFAULT_TUNNEL_SETTINGS, normalizeTunnelSettings, sampleTunnel, sweepIncidence, type TunnelSettings } from './windTunnel';
 import './windTunnel.css';
 
 type Key = keyof TunnelSettings;
 const fields: { key: Key; label: string; min: number; max: number; step: number; unit: string }[] = [
   { key: 'speed', label: 'Prędkość strumienia', min: 0, max: 40, step: .5, unit: 'm/s' },
-  { key: 'incidenceDeg', label: 'Kąt natarcia nart', min: -10, max: 30, step: .5, unit: '°' },
+  { key: 'incidenceDeg', label: 'Nachylenie układu względem strumienia', min: -10, max: 30, step: .5, unit: '°' },
   { key: 'bodyLeanDeg', label: 'Pochylenie tułowia od pionu', min: 50, max: 86, step: 1, unit: '°' },
   { key: 'vHalfAngleDeg', label: 'Połowa kąta V', min: 0, max: 14, step: .5, unit: '°' },
   { key: 'density', label: 'Gęstość powietrza', min: 0, max: 1.5, step: .001, unit: 'kg/m³' },
@@ -19,6 +21,9 @@ const copy = (s: TunnelSettings): TunnelSettings => ({ ...s });
 export class WindTunnelPanel {
   isOpen = false;
   private settings = copy(DEFAULT_TUNNEL_SETTINGS);
+  private heelAngles: [number, number] = [0, 0];
+  private bindingState = createBindingSystemState();
+  private cameraMode: 'athlete' | 'bindings' = 'athlete';
   private root: HTMLElement;
   private scene?: T.Scene;
   private camera?: T.PerspectiveCamera;
@@ -51,25 +56,27 @@ export class WindTunnelPanel {
           <div class="wind-viewport">
             <canvas class="wind-canvas" aria-label="Trójwymiarowy model skoczka w tunelu"></canvas>
             <div class="wind-legend"><span>● Siła nośna</span><span>● Opór</span></div>
-            <small>Przepływ od dziobów nart w kierunku zawodnika • widok laboratoryjny</small>
+            <div class="wind-view-buttons"><button type="button" data-lab-view="athlete" aria-pressed="true">Sylwetka</button><button type="button" data-lab-view="bindings" aria-pressed="false">Wiązania</button></div>
+            <small data-lab-caption>Przepływ od dziobów nart w kierunku zawodnika • widok laboratoryjny</small>
           </div>
           <div class="wind-controls">
             <h3>Ustawienie zawodnika</h3>
             <div data-sliders></div>
+            <div class="wind-fixture"><h4>Statyczne ustawienie pięt</h4><p>Podgląd sprzętu; kąt ogranicza długość tylnego pręta. Bez sterowania treningowego.</p><div data-heel-sliders></div><small data-binding-reading></small></div>
             <div class="wind-readings" aria-live="polite">
               <div><label>Nośność pionowa</label><strong data-metric="lift"></strong></div>
               <div><label>Opór</label><strong data-metric="drag"></strong></div>
               <div><label>Nośność / opór (L/D)</label><strong data-metric="ratio"></strong></div>
               <div><label>Moment pochylający</label><strong data-metric="moment"></strong></div>
               <div><label>Ciśnienie dynamiczne</label><strong data-metric="pressure"></strong></div>
-              <div><label>Kąt natarcia nart / tułowia</label><strong data-metric="alpha"></strong></div>
+              <div><label>Kąt natarcia L / P / tułowia</label><strong data-metric="alpha"></strong></div>
             </div>
           </div>
         </div>
         <div class="wind-bottom">
           <div class="wind-plot-box">
-            <div class="wind-plot-title">Przegląd kąta natarcia · wskaźnik L/D</div>
-            <svg class="wind-plot" viewBox="0 0 460 160" aria-label="Stosunek siły nośnej do oporu dla różnych kątów">
+            <div class="wind-plot-title">Przegląd nachylenia układu · wskaźnik L/D</div>
+            <svg class="wind-plot" viewBox="0 0 460 160" aria-label="Stosunek siły nośnej do oporu dla różnych nachyleń układu">
               <line x1="42" x2="444" y1="141" y2="141" stroke="#ffffff55"/>
               <line x1="42" x2="42" y1="15" y2="141" stroke="#ffffff55"/>
               <line data-zero x1="42" x2="444" y1="141" y2="141" stroke="#ffffff33" stroke-dasharray="3 4"/>
@@ -104,6 +111,13 @@ export class WindTunnelPanel {
       }
     });
     root.querySelector('[data-close]')!.addEventListener('click', () => this.close());
+    root.querySelectorAll<HTMLButtonElement>('[data-lab-view]').forEach(button =>
+      button.addEventListener('click', () => {
+        this.cameraMode = button.dataset.labView as 'athlete' | 'bindings';
+        root.querySelectorAll<HTMLButtonElement>('[data-lab-view]').forEach(view =>
+          view.setAttribute('aria-pressed', String(view === button)));
+        this.update();
+      }));
     const controls = root.querySelector('[data-sliders]')!;
     for (const field of fields) {
       const line = document.createElement('label');
@@ -117,10 +131,21 @@ export class WindTunnelPanel {
       });
       controls.append(line);
     }
+    for (let i = 0; i < 2; i++) {
+      const line = document.createElement('label');
+      line.className = 'wind-slider';
+      const label = i === 0 ? 'Uniesienie lewej pięty' : 'Uniesienie prawej pięty';
+      line.innerHTML = `<span>${label} <output></output></span><input type="range" min="0" max="${maximumHeelAngleRad() * 180 / Math.PI}" step="any" value="0" data-heel="${i}" aria-label="${label}">`;
+      line.querySelector('input')!.addEventListener('input', event => {
+        this.heelAngles[i] = Number((event.target as HTMLInputElement).value) * Math.PI / 180;
+        this.update();
+      });
+      root.querySelector('[data-heel-sliders]')!.append(line);
+    }
     root.querySelectorAll<HTMLButtonElement>('[data-compare]').forEach(button =>
       button.addEventListener('click', () => {
         const slot = button.dataset.compare as 'A'|'B';
-        this.samples[slot] = sampleTunnel(this.settings);
+        this.samples[slot] = sampleTunnel(this.settings, this.heelAngles);
         this.updateComparison();
       }));
     root.querySelector('[data-export]')!.addEventListener('click', () => this.exportCsv());
@@ -164,7 +189,7 @@ export class WindTunnelPanel {
     this.scene.add(new T.HemisphereLight('#b8dfff', '#5a7180', 2.4));
     const key = new T.DirectionalLight('#fff4dc', 3.1);
     key.position.set(-3, 7, 5); this.scene.add(key);
-    const athlete = new Athlete(); this.athlete = athlete;
+    const athlete = new Athlete(DEFAULT_EQUIPMENT); this.athlete = athlete;
     this.scene.add(athlete.root);
     const floor = new T.Mesh(new T.PlaneGeometry(13, 8),
       new T.MeshStandardMaterial({ color: '#244052', roughness: .8 }));
@@ -209,11 +234,21 @@ export class WindTunnelPanel {
   /** Keep the complete real-size specimen visible, including narrow screens. */
   private frameSpecimen() {
     if (!this.camera || !this.athlete) return;
-    const bounds = new T.Box3().setFromObject(this.athlete.root).expandByScalar(.15);
-    for (const arrow of [this.liftArrow, this.dragArrow])
-      if (arrow?.visible) bounds.union(new T.Box3().setFromObject(arrow));
+    const close = this.cameraMode === 'bindings';
+    const bounds = new T.Box3();
+    if (close) {
+      bounds.setFromObject(this.athlete.legs[0].boot);
+      for (const name of ['left-binding-front', 'left-binding-front-jaw', 'left-binding-rear-guide',
+        'left-binding-rear-rod', 'left-binding-rear-rod-inner'])
+        bounds.union(new T.Box3().setFromObject(this.athlete.root.getObjectByName(name)!));
+      bounds.expandByScalar(.04);
+    } else {
+      bounds.setFromObject(this.athlete.root).expandByScalar(.15);
+      for (const arrow of [this.liftArrow, this.dragArrow])
+        if (arrow?.visible) bounds.union(new T.Box3().setFromObject(arrow));
+    }
     const target = bounds.getCenter(new T.Vector3());
-    const direction = new T.Vector3(3.4, 1.75, 4.9).normalize();
+    const direction = (close ? new T.Vector3(.45, .60, -2.6) : new T.Vector3(3.4, 1.75, 4.9)).normalize();
     const right = new T.Vector3().crossVectors(new T.Vector3(0, 1, 0), direction).normalize();
     const up = new T.Vector3().crossVectors(direction, right).normalize();
     const tanVertical = Math.tan(this.camera.fov * Math.PI / 360);
@@ -226,14 +261,15 @@ export class WindTunnelPanel {
         distance = Math.max(distance, depth + Math.abs(offset.dot(right)) / (tanHorizontal * .80),
           depth + Math.abs(offset.dot(up)) / (tanVertical * .72));
       }
-    this.camera.position.copy(target).addScaledVector(direction, Math.max(3.2, distance));
+    this.camera.position.copy(target).addScaledVector(direction, Math.max(close ? .65 : 3.2, distance));
     this.camera.lookAt(target);
     this.camera.updateMatrixWorld();
   }
 
   private update() {
     this.settings = normalizeTunnelSettings(this.settings);
-    const measured = sampleTunnel(this.settings);
+    const measured = sampleTunnel(this.settings, this.heelAngles);
+    this.heelAngles = measured.heelAngles;
     for (const field of fields) {
       const input = this.root.querySelector<HTMLInputElement>(`[data-key="${field.key}"]`)!;
       input.value = String(this.settings[field.key]);
@@ -245,18 +281,36 @@ export class WindTunnelPanel {
       ratio: measured.dragLongitudinal > 1e-8 ? display(measured.ratio, 2) : '—', moment: `${display(measured.moment)} N·m`,
       pressure: `${display(measured.dynamicPressure)} Pa`,
       alpha: measured.airSpeed > 1e-6
-        ? `${display(measured.alpha * 180 / Math.PI)}° / ${display(measured.alpha * 180 / Math.PI + 90 - this.settings.bodyLeanDeg)}°`
-        : '— / —',
+        ? `${display(measured.skis[0].alpha * 180 / Math.PI)}° / ${display(measured.skis[1].alpha * 180 / Math.PI)}° / ${display(measured.body.alpha * 180 / Math.PI)}°`
+        : '— / — / —',
     };
     for (const [key, value] of Object.entries(values))
       this.root.querySelector(`[data-metric="${key}"]`)!.textContent = value;
 
     const tilt = this.settings.incidenceDeg * Math.PI / 180;
+    this.bindingState = createBindingSystemState(tilt, 0, DEFAULT_EQUIPMENT);
+    this.bindingState.skis.forEach((ski, i) => {
+      const angle = this.heelAngles[i], geometry = heelGeometry(DEFAULT_EQUIPMENT, angle);
+      Object.assign(ski, { heelAngleRad: angle, absolutePitchRad: tilt + angle,
+        heelRiseM: geometry.heelRiseM, rodLengthM: geometry.rodLengthM,
+        soleFlexAngleRad: geometry.soleFlexAngleRad,
+        angleOfAttackRad: measured.skis[i].alpha, vAngleRad: this.settings.vHalfAngleDeg * Math.PI / 180 });
+      const input = this.root.querySelector<HTMLInputElement>(`[data-heel="${i}"]`)!;
+      input.value = String(angle * 180 / Math.PI);
+      input.parentElement!.querySelector('output')!.textContent = `${display(angle * 180 / Math.PI)}°`;
+    });
+    this.root.querySelector('[data-binding-reading]')!.textContent = this.bindingState.skis.map((ski, i) =>
+      `${i === 0 ? 'L' : 'P'}: pięta ${display(ski.heelRiseM * 1000)} mm · pręt ${display(ski.rodLengthM * 1000)} mm`).join(' | ');
+    this.root.querySelector('[data-lab-caption]')!.textContent = this.cameraMode === 'bindings'
+      ? 'Zbliżenie lewego wiązania · statyczny podgląd przedniego mocowania i tylnego pręta'
+      : 'Przepływ od dziobów nart w kierunku zawodnika • widok laboratoryjny';
+    this.flowDots.forEach(dot => { dot.visible = this.cameraMode === 'athlete'; });
     // One pose definition drives both the wind-tunnel rig and its coefficient input.
     const v = this.settings.vHalfAngleDeg / (180 * .25 / Math.PI);
     this.athlete?.pose(1, .85, 0, {
       bodyLean: this.settings.bodyLeanDeg * Math.PI / 180,
       vSpread: Math.max(0, Math.min(1, v)),
+      equipment: DEFAULT_EQUIPMENT, skiStates: this.bindingState.skis,
     });
     if (this.athlete) {
       const root = this.athlete.root;
@@ -267,8 +321,9 @@ export class WindTunnelPanel {
       // into the display floor when incidence changes. Flight physics is intact.
       root.position.y = Math.max(0, .12 - specimen.min.y);
       root.updateMatrixWorld(true);
-      const com = centerOfMassOffset(1, .85, 0, this.settings.bodyLeanDeg * Math.PI / 180);
-      const origin = root.localToWorld(new T.Vector3(com.x, com.y, 0));
+      const com = centerOfMassOffset(1, .85, 0, this.settings.bodyLeanDeg * Math.PI / 180,
+        { equipment: DEFAULT_EQUIPMENT, skiStates: this.bindingState.skis, vSpread: Math.max(0, Math.min(1, v)) });
+      const origin = root.localToWorld(new T.Vector3(com.x, com.y, com.z));
       this.liftArrow?.position.copy(origin);
       this.dragArrow?.position.copy(origin);
     }
@@ -277,7 +332,7 @@ export class WindTunnelPanel {
       if (!arrow) continue;
       const dir = new T.Vector3(force.x, force.y, force.z);
       const magnitude = dir.length();
-      arrow.visible = magnitude > .001;
+      arrow.visible = magnitude > .001 && this.cameraMode === 'athlete';
       if (magnitude > .001) {
         arrow.setDirection(dir.normalize());
         arrow.setLength(Math.min(1.6, .25 + magnitude / 350), .18, .10);
@@ -288,7 +343,7 @@ export class WindTunnelPanel {
   }
 
   private updateChart() {
-    const rows = sweepIncidence(this.settings);
+    const rows = sweepIncidence(this.settings, -10, 30, 1, this.heelAngles);
     const min = Math.min(0, ...rows.map(r => r.ratio));
     const max = Math.max(.5, ...rows.map(r => r.ratio));
     const span = max - min || 1;
@@ -302,7 +357,7 @@ export class WindTunnelPanel {
     this.root.querySelector('[data-y-max]')!.textContent = display(max, 1);
     this.root.querySelector('[data-zero]')!.setAttribute('y1', String(y(0)));
     this.root.querySelector('[data-zero]')!.setAttribute('y2', String(y(0)));
-    const current = sampleTunnel(this.settings);
+    const current = sampleTunnel(this.settings, this.heelAngles);
     this.root.querySelector('[data-operating-point]')!.setAttribute('cx', String(x));
     this.root.querySelector('[data-operating-point]')!.setAttribute('cy', String(y(current.ratio)));
     (this.root.querySelector('[data-operating-point]') as SVGElement).style.display = current.dragLongitudinal > 1e-8 ? '' : 'none';
@@ -312,7 +367,7 @@ export class WindTunnelPanel {
     const a = this.samples.A, b = this.samples.B;
     const describe = (name: string, sample: NonNullable<typeof a>) => {
       const s = sample.settings;
-      return `${name}: ${display(s.speed)} m/s · α ${display(s.incidenceDeg)}° · tułów ${display(s.bodyLeanDeg)}° · V ${display(2 * s.vHalfAngleDeg)}° · ρ ${display(s.density, 3)} kg/m³ · L/D ${sample.dragLongitudinal > 1e-8 ? display(sample.ratio, 2) : '—'}`;
+      return `${name}: ${display(s.speed)} m/s · α ${display(s.incidenceDeg)}° · tułów ${display(s.bodyLeanDeg)}° · V ${display(2 * s.vHalfAngleDeg)}° · ρ ${display(s.density, 3)} kg/m³ · pięty L/P ${sample.heelAngles.map(angle => display(angle * 180 / Math.PI)).join('/')}° · L/D ${sample.dragLongitudinal > 1e-8 ? display(sample.ratio, 2) : '—'}`;
     };
     this.root.querySelector('[data-comparison]')!.textContent = a && b
       ? `${describe('A', a)}\n${describe('B', b)}\nRóżnica L/D: ${a.dragLongitudinal > 1e-8 && b.dragLongitudinal > 1e-8 ? display(b.ratio - a.ratio, 2) : '—'}`
@@ -322,12 +377,12 @@ export class WindTunnelPanel {
   }
 
   private exportCsv() {
-    const rows = sweepIncidence(this.settings);
+    const rows = sweepIncidence(this.settings, -10, 30, 1, this.heelAngles);
     const text = [
-      'angle_deg,speed_m_s,body_lean_deg,v_half_angle_deg,density_kg_m3,lift_N,drag_N,lift_drag_ratio',
+      'angle_deg,speed_m_s,body_lean_deg,v_half_angle_deg,density_kg_m3,lift_N,drag_N,lift_drag_ratio,heel_left_rad,heel_right_rad',
       ...rows.map(r => [r.angle, this.settings.speed, this.settings.bodyLeanDeg,
         this.settings.vHalfAngleDeg, this.settings.density, r.lift, r.drag,
-        r.drag > 1e-8 ? r.ratio : ''].join(',')),
+        r.drag > 1e-8 ? r.ratio : '', ...this.heelAngles].join(',')),
     ].join('\n');
     const url = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }));
     const link = document.createElement('a');

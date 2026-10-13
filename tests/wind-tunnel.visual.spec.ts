@@ -103,7 +103,7 @@ test('zero flow stops tracers and rapid reopen keeps one animation loop', async 
   expect(await page.evaluate(() => (window as any).SKYLIFT.tunnel.flowDots.map((dot: any) => dot.position.toArray()))).toEqual(dots);
   for (const metric of ['lift', 'drag']) await expect(page.locator(`[data-metric="${metric}"]`)).toHaveText('0.0 N');
   await expect(page.locator('[data-metric="ratio"]')).toHaveText('—');
-  await expect(page.locator('[data-metric="alpha"]')).toHaveText('— / —');
+  await expect(page.locator('[data-metric="alpha"]')).toHaveText('— / — / —');
   expect(await page.evaluate(() => {
     const t = (window as any).SKYLIFT.tunnel; return [t.liftArrow.visible, t.dragArrow.visible];
   })).toEqual([false, false]);
@@ -135,7 +135,7 @@ test('A/B preserves conditions and CSV contains reproducible polar settings', as
   const file = await download;
   expect(file.suggestedFilename()).toBe('skylift-wind-tunnel.csv');
   const rows = (await readFile((await file.path())!, 'utf8')).trim().split('\n');
-  expect(rows[0]).toBe('angle_deg,speed_m_s,body_lean_deg,v_half_angle_deg,density_kg_m3,lift_N,drag_N,lift_drag_ratio');
+  expect(rows[0]).toBe('angle_deg,speed_m_s,body_lean_deg,v_half_angle_deg,density_kg_m3,lift_N,drag_N,lift_drag_ratio,heel_left_rad,heel_right_rad');
   expect(rows).toHaveLength(42);
   const values = rows[1].split(',').map(Number);
   expect(values.slice(0, 5)).toEqual([-10, 27, 50, 0, 1.225]);
@@ -143,6 +143,7 @@ test('A/B preserves conditions and CSV contains reproducible polar settings', as
   expect(values[5]).toBeCloseTo(expected.liftVertical, 10);
   expect(values[6]).toBeCloseTo(expected.dragLongitudinal, 10);
   expect(values[7]).toBeCloseTo(expected.ratio, 10);
+  expect(values.slice(8)).toEqual([0, 0]);
 });
 
 test('portrait layout keeps the complete specimen and controls within the viewport', async ({ page }) => {

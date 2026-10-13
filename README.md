@@ -1,4 +1,4 @@
-# SKYLIFT 3D — 0.9 / laboratorium aerodynamiki
+# SKYLIFT 3D — 0.11 / Milestone 1: narty i wiązania
 
 Laboratorium najazdu i wybicia. Three.js + TypeScript + Vite; bez tekstur obrazkowych.
 
@@ -14,9 +14,9 @@ Do pracy lokalnej: sklonuj repozytorium, wejdź do jego folderu, uruchom `npm ci
 
 ## Uruchomienie bez instalacji
 
-Podgląd online działa pod adresem https://damwach.github.io/WDSJ/?v=0.9. Kamera „Skocznia” pokazuje pełny profil Wielkiej Krokwi; „Pokaz techniki” i „Zawodnik” pokazują ruch z bliska.
+Podgląd online działa pod adresem https://damwach.github.io/WDSJ/?v=0.11. Kamera „Skocznia” pokazuje pełny profil Wielkiej Krokwi; „Pokaz techniki” i „Zawodnik” pokazują ruch z bliska.
 
-Opcjonalnie pobierz `artifacts/SKYLIFT-0.9.html` na swój komputer i otwórz go w Chrome lub Edge. Plik zawiera cały kod, Three.js i style. Działa bez serwera, internetu i Node.js.
+Opcjonalnie pobierz `artifacts/SKYLIFT-0.11.html` na swój komputer i otwórz go w Chrome lub Edge. Plik zawiera cały kod, Three.js i style. Działa bez serwera, internetu i Node.js.
 
 Adres `localhost` dotyczy komputera, na którym działa przeglądarka. Serwer uruchomiony w środowisku chmurowym nie jest dostępny przez `localhost` na Twoim komputerze.
 
@@ -105,3 +105,11 @@ Zmniejszono powierzchnię referencyjną ciała do 0.489 m² na podstawie rzutu g
 Przycisk „Tunel aerodynamiczny” otwiera osobny podgląd tej samej funkcji sił co lot i wstrzymuje skok. Suwaki zmieniają prędkość przepływu, ustawienie nart, pochylenie tułowia, otwarcie V i gęstość. Można porównać pozycje A/B i wyeksportować krzywą do CSV. Wyniki są prognozami niezwalidowanego modelu, nie eksperymentem ani CFD.
 
 Opis: [WIND-TUNNEL.md](docs/WIND-TUNNEL.md). Audyt fizyki i status dostępności danych naukowych: [AERODYNAMIC-AUDIT.md](docs/AERODYNAMIC-AUDIT.md). CI sprawdza także WebGL w Chromium; [CI.md](docs/CI.md) wyjaśnia zastąpienie błędnego workflow Deno.
+
+## Milestone 1 — narty i wiązania
+
+Każda narta ma własny stan, COM, bezwładność, kąt i siły aerodynamiczne. Przednie mocowanie jest przegubem, a pięta porusza się względem narty w granicach widocznego tylnego pręta. Sprężyny i tłumienie przenoszą równą i przeciwną reakcję na zawodnika. Domyślne 57% mierzy się do czubka buta: 1.482 m przed nim i 1.118 m za nim, wyświetlane 148 cm. Dokładnego zapisu dokumentu FIS nie zweryfikowano niezależnie; zastosowano regułę przekazaną w specyfikacji i konserwatywną walidację konkursową.
+
+Prześwit co najmniej 3 cm wynika z geometrii nart i osiągalnego odwiedzenia nóg. Długości kości pozostają stałe. W tunelu wybierz **Wiązania**, aby obejrzeć mocowanie, piętę i metalowy ogranicznik; dwa suwaki są statycznym stanowiskiem laboratoryjnym. W skoku względne kąty nart wynikają z dynamiki. Tryb treningowy z naturalnym sterowaniem należy do późniejszego milestone’u.
+
+Opis jednostek, parametrów i ograniczeń: [EQUIPMENT.md](docs/EQUIPMENT.md). Physics Studio, sterowanie kostkami, deterministyczne zaburzenia i nowa siatka człowieka pozostają oddzielnymi etapami. Rejestrator/replay z wcześniejszej specyfikacji jest w osobnym [PR #3](https://github.com/damwach/WDSJ/pull/3).
