@@ -177,7 +177,8 @@ describe('observable takeoff and contact', () => {
     expect(sim.resultDistance).toBeLessThan(certificate.hs);
     expect(sim.impact).toBeLessThan(Math.sqrt(8*sim.gravity*.45));
     // The post-impact velocity is tangent to the actual certified hill model.
-    expect(sim.vy-landingSlope(sim.x)*sim.vx).toBeCloseTo(0,10);
+    expect(sim.landingContact).not.toBeNull();
+    expect(sim.vy-landingSlope(sim.landingContact!.x)*sim.vx).toBeCloseTo(0,10);
     expect(sim.flightTime).toBeLessThan(6);
   });
   it('brakes to rest within the rising certified outrun', () => {

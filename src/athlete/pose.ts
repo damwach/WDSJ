@@ -1,9 +1,15 @@
 /** Kinematics in metres/radians. +X is forward, Y up; every bone keeps its length.
  * One pose definition is shared by the visible skeleton and the COM model. */
+import { DEFAULT_EQUIPMENT, type EquipmentConfig } from '../equipment/config';
+import { requiredAnkleHalfSeparation, type SkiBindingState } from '../equipment/model';
 export const dimensions = { thigh: .44, shin: .43, torso: .53, ski: 2.6 };
-/** Union of the procedural body's triangles projected into its chord plane
- * (boots/skis/bindings excluded), 1mm grid: .4891m². This is geometry, not
- * validation of lift/drag coefficients. See scripts/measure-body-area.mjs. */
+export const hipHalfWidthM = .105;
+/** A modelling limit, not a measurement of this particular athlete. */
+export const maxLegAbductionRad = Math.PI / 6;
+/** Reference carried from the pre-lateral-IK rig: triangle projection .4891m²
+ * on a 1mm grid, equipment excluded. The new wider stance has not yet been
+ * remeasured; this remains an aero reference parameter, not a validation.
+ * See scripts/measure-body-area.mjs for the current rig measurement procedure. */
 export const BODY_REFERENCE_AREA = .489;
 export const BODY_REFERENCE_SPAN = .452;
 export const ankleHeight = .115;
@@ -21,6 +27,11 @@ export type PoseControl = {
   vSpread?: number;
   /** Positive lifts the ski tips; boot and binding follow the ski. */
   skiPitch?: number;
+  equipment?: EquipmentConfig;
+  /** Actual complete system mass; COM segment weights use the same mass. */
+  totalMassKg?: number;
+  /** Mechanical solver state; heel angles are never invented by animation. */
+  skiStates?: readonly SkiBindingState[];
   /** Ground presentation: absorption/recovery, not an extra flight impulse. */
   groundedSeconds?: number;
   impactSpeed?: number;
@@ -31,16 +42,38 @@ export type PoseControl = {
  * simultaneously with the push against the table. */
 export const vDeployment = (seconds: number) => smooth(seconds, .12, .52);
 
-/** Sagittal two-link IK with the anatomical knee bending backward. */
-function legAt(hipX: number, hipY: number, ankleX: number) {
-  const dx = ankleX - hipX, dy = hipY - ankleHeight;
+/** Embed a two-link leg in a plane which reaches the requested lateral ankle.
+ * Rotating the whole plane keeps the knee hinge and both bone lengths intact. */
+function legAt(hipX: number, hipY: number, ankleX: number, ankleZ: number, side: number, ankleY: number) {
+  const dx = ankleX - hipX, dy = hipY - ankleY, dz = ankleZ - side * hipHalfWidthM;
+  const sagittalReach = Math.hypot(dx, dy);
+  const abduction = -Math.atan2(dz, sagittalReach);
+  const planeAxisX = dy / Math.max(sagittalReach, 1e-9);
+  const planeAxisY = dx / Math.max(sagittalReach, 1e-9);
+  const projectedScale = 1 / Math.cos(abduction);
+  const localX = dx * projectedScale, localY = dy * projectedScale;
   const a = dimensions.thigh, b = dimensions.shin;
-  const flex = -Math.acos(clamp((dx * dx + dy * dy - a * a - b * b) / (2 * a * b), -1, 1));
-  const upper = Math.atan2(dx, dy) - Math.atan2(b * Math.sin(flex), a + b * Math.cos(flex));
-  return { upper, lower: upper + flex, ankleX };
+  const flex = -Math.acos(clamp((localX * localX + localY * localY - a * a - b * b) / (2 * a * b), -1, 1));
+  const upper = Math.atan2(localX, localY) - Math.atan2(b * Math.sin(flex), a + b * Math.cos(flex));
+  return { upper, lower: upper + flex, ankleX, ankleZ, abduction, planeAxisX, planeAxisY };
+}
+
+/** Exact knee position matching the rig's plane rotation (Rodrigues formula). */
+export function legKneePosition(pose: ReturnType<typeof jointPose>, index: number) {
+  const leg = pose.legs[index], side = index === 0 ? -1 : 1;
+  const x = dimensions.thigh * Math.sin(leg.upper), y = -dimensions.thigh * Math.cos(leg.upper);
+  const c = Math.cos(leg.abduction), s = Math.sin(leg.abduction);
+  const d = leg.planeAxisX * x + leg.planeAxisY * y;
+  return {
+    x: pose.hipX + x * c + leg.planeAxisX * d * (1 - c),
+    y: pose.hipY + y * c + leg.planeAxisY * d * (1 - c),
+    z: side * hipHalfWidthM + (leg.planeAxisX * y - leg.planeAxisY * x) * s,
+  };
 }
 
 export function jointPose(extension: number, flightSeconds = 0, landing = 0, controls: PoseControl = {}) {
+  const equipment = controls.equipment ?? DEFAULT_EQUIPMENT;
+  const ankleHeightM = equipment.binding.ankleHeightM;
   const e = clamp(extension, 0, 1);
   const contact = smooth(landing, 0, 1);
   // Knee drive precedes the hip/chest opening. The chest remains forward at the
@@ -70,19 +103,40 @@ export function jointPose(extension: number, flightSeconds = 0, landing = 0, con
   lower = mix(lower - .16 * absorption, -.10, recovery);
   trunkLean = mix(trunkLean + .10 * absorption, .29, recovery);
 
-  const hipX = -(dimensions.thigh * Math.sin(upper) + dimensions.shin * Math.sin(lower));
-  const hipY = ankleHeight + dimensions.thigh * Math.cos(upper) + dimensions.shin * Math.cos(lower);
+  const nominalHipX = -(dimensions.thigh * Math.sin(upper) + dimensions.shin * Math.sin(lower));
+  const nominalVertical = dimensions.thigh * Math.cos(upper) + dimensions.shin * Math.cos(lower);
+  const legReach = Math.hypot(nominalHipX, nominalVertical);
+  const deployment = (controls.vSpread === undefined ? vDeployment(flightSeconds) : clamp(controls.vSpread, 0, 1)) * (1 - contact);
+  let vAngleRad = equipment.ski.vAngleRad * deployment;
+  const neutralSeparation = requiredAnkleHalfSeparation(equipment, 0);
+  const neutralPadding = Math.max(0, hipHalfWidthM - neutralSeparation) * (1 - deployment) ** 2;
+  const separationAt = (angle: number) => requiredAnkleHalfSeparation(equipment, angle) + neutralPadding;
+  // Wider/longer skis may demand an unreachable stance. Reduce opening within
+  // the joint limit, rather than stretching bones or translating only the skis.
+  const maxSeparation = hipHalfWidthM + legReach * Math.sin(maxLegAbductionRad);
+  if (separationAt(vAngleRad) > maxSeparation) {
+    let lo = 0, hi = vAngleRad;
+    for (let i = 0; i < 24; i++) {
+      const middle = (lo + hi) / 2;
+      if (separationAt(middle) > maxSeparation) hi = middle; else lo = middle;
+    }
+    vAngleRad = lo;
+  }
+  const ankleHalfSeparationM = separationAt(vAngleRad);
+  const lateralReach = Math.max(0, ankleHalfSeparationM - hipHalfWidthM);
+  const abduction = Math.asin(clamp(lateralReach / Math.max(legReach, 1e-9), 0, 1));
+  const hipX = nominalHipX * Math.cos(abduction);
+  const hipY = ankleHeightM + nominalVertical * Math.cos(abduction);
   // Stagger the feet into a modest telemark. Limit stride by the reachable ankle
   // interval so neither leg stretches or snaps into knee hyperextension.
-  const reachX = Math.sqrt(Math.max(0, (dimensions.thigh + dimensions.shin - .004) ** 2 - (hipY - ankleHeight) ** 2));
+  const reachX = Math.sqrt(Math.max(0, (dimensions.thigh + dimensions.shin - .004) ** 2 - (hipY - ankleHeightM) ** 2 - lateralReach ** 2));
   const stride = Math.min(.16 * contact * (1 - .75 * recovery), Math.max(0, reachX - Math.abs(hipX)));
-  const legs = stride > 1e-9
-    ? [legAt(hipX, hipY, stride), legAt(hipX, hipY, -stride)]
-    : [{ upper, lower, ankleX: 0 }, { upper, lower, ankleX: 0 }];
-  const v = (controls.vSpread === undefined ? vDeployment(flightSeconds) : clamp(controls.vSpread, 0, 1)) * (1 - contact);
+  const legs = [legAt(hipX, hipY, stride, -ankleHalfSeparationM, -1, ankleHeightM),
+    legAt(hipX, hipY, -stride, ankleHalfSeparationM, 1, ankleHeightM)];
+  const v = equipment.ski.vAngleRad > 0 ? vAngleRad / equipment.ski.vAngleRad : 0;
   const shoulder = mix(mix(.05, -.04, chestDrive), .075, flight) + .34 * contact - .13 * recovery;
   return {
-    hipX, hipY, legs, trunkLean, flight, contact, v,
+    hipX, hipY, legs, trunkLean, flight, contact, v, vAngleRad, ankleHalfSeparationM, ankleHeightM,
     headRotation: trunkLean - mix(.11, .36, chestTransfer * (1 - contact)),
     shoulder, armSpread: .028 + .015 * flight + .21 * contact - .12 * recovery,
     elbow: -.12 + .035 * flight - .29 * contact + .13 * recovery,

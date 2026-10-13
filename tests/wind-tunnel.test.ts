@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { aerodynamicForces } from '../src/physics/aerodynamics';
+import { maximumHeelAngleRad } from '../src/equipment/model';
 import { DEFAULT_TUNNEL_SETTINGS as defaults, normalizeTunnelSettings, sampleTunnel, sweepIncidence } from '../src/lab/windTunnel';
 
 describe('wind-tunnel diagnostics use live flight aerodynamics', () => {
@@ -87,5 +88,28 @@ describe('wind-tunnel diagnostics use live flight aerodynamics', () => {
           expect(actual.moment).toBeCloseTo(expected.moment, 10);
           expect(Object.values(actual.force).every(Number.isFinite)).toBe(true);
         }
+  });
+  it('passes independent static heel angles into the actual ski aerodynamics', () => {
+    const heels: [number, number] = [maximumHeelAngleRad(), .03];
+    const actual = sampleTunnel(defaults, heels);
+    const expected = aerodynamicForces({
+      velocity: { x: defaults.speed, y: 0, z: 0 }, wind: { x: 0, y: 0, z: 0 },
+      pitch: defaults.incidenceDeg * Math.PI / 180, roll: 0, omega: 0,
+      bodyLean: defaults.bodyLeanDeg * Math.PI / 180, vAngle: defaults.vHalfAngleDeg * Math.PI / 180,
+      skiAngles: heels,
+    }, { density: defaults.density });
+    expect(actual.heelAngles).toEqual(heels);
+    for (let i = 0; i < 2; i++) {
+      expect(actual.skis[i].alpha).toBeCloseTo(expected.skis[i].alpha, 12);
+      expect(actual.skis[i].force.y).toBeCloseTo(expected.skis[i].force.y, 10);
+    }
+    expect(actual.skis[0].alpha).not.toBeCloseTo(actual.skis[1].alpha, 4);
+    expect(sweepIncidence(defaults, -10, 30, 1, heels)[20].lift).toBeCloseTo(actual.liftVertical, 10);
+  });
+  it('enforces the rear-rod travel for lab fixtures rather than allowing arbitrary ski pitch', () => {
+    for (const heels of [[-.001, 0], [0, maximumHeelAngleRad() + .001], [Infinity, 0], [0, NaN]])
+      expect(() => sampleTunnel(defaults, heels as [number, number])).toThrow(RangeError);
+    expect(() => sweepIncidence(defaults, -10, 30, 1, [0, -1])).toThrow(RangeError);
+    expect(() => sampleTunnel(defaults, [0] as unknown as [number, number])).toThrow(RangeError);
   });
 });

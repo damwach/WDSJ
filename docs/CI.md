@@ -31,6 +31,35 @@ Po pomyślnej kontroli osobny job buduje dystrybucję z bazą `/WDSJ/`, a job
 `deploy` publikuje ten artefakt na GitHub Pages. Runner jest przypięty do Ubuntu
 24.04, aby migracja etykiety `ubuntu-latest` nie zmieniała zależności Chromium.
 
+## Podgląd etapu przed połączeniem PR
+
+Ręczne uruchomienie Pages pozwala opublikować przetestowany commit z otwartego
+PR bez łączenia zmian gry z `main`. Workflow uruchamia się z `main`, a opcjonalne
+pole `preview_ref` wskazuje kod do oceny. Przykład z pełnym SHA:
+
+```sh
+gh workflow run pages.yml --repo damwach/WDSJ --ref main \
+  -f preview_ref=<pełny-SHA-commitu-etapu>
+```
+
+Job `revision` rozwiązuje wybrany ref tylko raz do niezmiennego SHA. Ten sam SHA
+trafia do kontroli TypeScript, testów jednostkowych i Playwright oraz do builda
+publikowanego na Pages. Błąd któregokolwiek testu blokuje build i wdrożenie.
+Można podać nazwę gałęzi; do odtwarzalnej oceny zalecany jest pełny SHA.
+
+Podgląd korzysta z istniejącej strony
+[damwach.github.io/WDSJ](https://damwach.github.io/WDSJ/) i zastępuje jej aktualną
+wersję do następnej publikacji z `main` lub kolejnego podglądu. Nie powstaje
+osobny adres dla każdego PR. Odwrócenie podglądu polega na ponownym uruchomieniu
+workflow z `main` bez `preview_ref`; pusty parametr wybiera commit uruchamianego
+workflow (`github.sha`). Dla CLI należy jawnie użyć `--ref main`, a w interfejsie
+Actions wybrać gałąź `main`. Domyślna gałąź repozytorium jest również `main`.
+Automatyczny push do `main` działa jak dotychczas i publikuje commit tego pushu.
+
+Zmiana nie dotyka reguł środowiska `github-pages`, polityki dopuszczonych gałęzi
+wdrożenia ani sekretów. Sam workflow nadal działa z `main`; checkout kodu etapu
+jest częścią kontroli i builda, nie połączeniem PR.
+
 ## Przyczyna wcześniejszego błędu Deno
 
 Historyczny workflow `deno.yml` był szablonem dla innego stosu: instalował Deno

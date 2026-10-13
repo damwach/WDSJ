@@ -30,7 +30,13 @@
 .wind-readings>div{padding:12px 10px;background:#071d2b80;border:1px solid #ffffff17;border-radius:4px}
 .wind-readings label{font-size:9px;color:#90adbf;display:block}
 .wind-readings strong{display:block;font-size:20px;font-weight:550;white-space:nowrap;margin-top:5px;font-variant-numeric:tabular-nums}
-.wind-readings [data-metric="alpha"]{font-size:17px}
+.wind-readings [data-metric="alpha"]{font-size:15px}
+.wind-view-buttons{position:absolute;right:12px;top:10px;display:flex;gap:5px}
+.wind-view-buttons button{padding:7px 10px;border:1px solid #7393a6;background:#142d3e;color:#c7dbe6;border-radius:4px;font-size:10px}
+.wind-view-buttons button[aria-pressed="true"]{border-color:#87e5df;color:#aef3ed;background:#254759}
+.wind-fixture{border-top:1px solid #ffffff24;padding-top:12px;margin-top:5px}
+.wind-fixture h4{font-size:12px;margin:0 0 7px;font-weight:600}
+.wind-fixture p,.wind-fixture>small{font-size:10px;line-height:1.5;color:#a7bfcc;margin:0 0 12px;display:block}
 .wind-bottom{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(230px,.7fr);gap:22px;margin-top:22px}
 .wind-plot-box,.wind-actions{background:#152d3dbb;border:1px solid #ffffff1e;border-radius:8px;padding:18px}
 .wind-plot-title{font-size:12px;color:#eaf3f7;font-weight:600;margin-bottom:6px}

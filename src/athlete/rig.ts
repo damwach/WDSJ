@@ -1,73 +1,32 @@
 import * as T from 'three';
-import { jointPose, dimensions, ankleHeight, type PoseControl } from './pose';
-import { athleteMaterials, makeTorso, makePelvis, makeLimb, makeHead, makeGlove, makeJointSleeve } from './surfaces';
+import { jointPose, dimensions, hipHalfWidthM, type PoseControl } from './pose';
+import { makeTorso, makePelvis, makeLimb, makeHead, makeGlove, makeJointSleeve } from './surfaces';
+import { DEFAULT_EQUIPMENT, type EquipmentConfig } from '../equipment/config';
+import { SkiAssembly } from '../equipment/visual';
 export { dimensions } from './pose';
 export type { PoseControl } from './pose';
 
-const { suit, navy, cream, black } = athleteMaterials;
-const sole = new T.MeshStandardMaterial({ color: '#405260', roughness: .45, metalness: .2 });
-const edge = new T.MeshStandardMaterial({ color: '#98b0b9', roughness: .35, metalness: .65 });
-
-function mesh(geometry: T.BufferGeometry, material: T.Material, parent: T.Object3D,
-  x = 0, y = 0, z = 0) {
-  const object = new T.Mesh(geometry, material);
-  object.position.set(x, y, z);
-  object.castShadow = true;
-  object.receiveShadow = true;
-  parent.add(object);
-  return object;
-}
-function ellipsoid(parent: T.Object3D, material: T.Material, at: number[], size: number[]) {
-  const object = mesh(new T.SphereGeometry(1, 24, 16), material, parent, ...at as [number, number, number]);
-  object.scale.set(...size as [number, number, number]);
-  return object;
-}
-
-/** Full 2.60 m ski, with a rising shovel and rounded, tapered planform. */
-function skiGeometry() {
-  const positions: number[] = [], indices: number[] = [];
-  const sections = 54;
-  for (let i = 0; i <= sections; i++) {
-    const x = -1.06 + dimensions.ski * i / sections;
-    const nose = T.MathUtils.smoothstep(x, 1.22, 1.54);
-    const tail = T.MathUtils.smoothstep(-x, 1.01, 1.06);
-    const halfWidth = (.056 + .0015 * Math.abs(x) / 1.54) * (1 - .75 * nose ** 4) * (1 - .3 * tail);
-    const y = -ankleHeight + .105 * nose ** 2 + .012 * tail;
-    positions.push(x, y, -halfWidth, x, y, halfWidth,
-      x, y + .021, -halfWidth, x, y + .021, halfWidth);
-  }
-  for (let i = 0; i < sections; i++) {
-    const a = i * 4, b = a + 4;
-    indices.push(a, a + 1, b + 1, a, b + 1, b,
-      a + 2, b + 2, b + 3, a + 2, b + 3, a + 3,
-      a, b, b + 2, a, b + 2, a + 2,
-      a + 1, a + 3, b + 3, a + 1, b + 3, b + 1);
-  }
-  indices.push(0, 2, 3, 0, 3, 1);
-  const end = sections * 4;
-  indices.push(end, end + 1, end + 3, end, end + 3, end + 2);
-  const geometry = new T.BufferGeometry();
-  geometry.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
-  geometry.setIndex(indices);
-  geometry.computeVertexNormals();
-  return geometry;
-}
-
-const skiShape = skiGeometry();
 /** Fixed-length hierarchical rig; all surfaces are allocated once. */
 export class Athlete {
   root = new T.Group();
   pelvis = new T.Group();
   torso = new T.Group();
-  legs: { hip: T.Group; knee: T.Group; ankle: T.Group; ski: T.Group }[] = [];
+  legs: { hip: T.Group; knee: T.Group; ankle: T.Group; ski: T.Group; boot: T.Group; equipment: SkiAssembly }[] = [];
   arms: T.Group[] = [];
   private elbows: T.Group[] = [];
   private head = new T.Group();
-  private cuffs: T.Group[] = [];
   private kneeSleeves: ReturnType<typeof makeJointSleeve>[] = [];
   private elbowSleeves: ReturnType<typeof makeJointSleeve>[] = [];
+  private planeQuaternion = new T.Quaternion();
+  private sagittalQuaternion = new T.Quaternion();
+  private planeAxis = new T.Vector3();
+  private zAxis = new T.Vector3(0, 0, 1);
+  private equipmentConfig: EquipmentConfig;
+  private equipmentSignature: string;
 
-  constructor() {
+  constructor(equipment: EquipmentConfig = DEFAULT_EQUIPMENT) {
+    this.equipmentConfig = equipment;
+    this.equipmentSignature = JSON.stringify(equipment);
     this.root.name = 'ski-jumper';
     this.root.add(this.pelvis);
     this.pelvis.add(this.torso);
@@ -81,7 +40,7 @@ export class Athlete {
     for (const side of [-1, 1] as const) {
       const hip = new T.Group();
       hip.name = side === -1 ? 'left-hip' : 'right-hip';
-      hip.position.z = side * .105;
+      hip.position.z = side * hipHalfWidthM;
       this.pelvis.add(hip);
       hip.add(makeLimb(dimensions.thigh, 'thigh', side));
       const knee = new T.Group();
@@ -95,24 +54,9 @@ export class Athlete {
       const ankle = new T.Group();
       ankle.position.y = -dimensions.shin;
       knee.add(ankle);
-      const ski = new T.Group();
-      ankle.add(ski);
-      mesh(skiShape, cream, ski);
-      mesh(new T.BoxGeometry(1.47, .002, .021), suit, ski, .19, -ankleHeight + .022);
-      mesh(new T.BoxGeometry(.32, .002, .083), navy, ski, -.74, -ankleHeight + .022);
-      mesh(new T.BoxGeometry(.15, .003, .08), suit, ski, 1.10, -ankleHeight + .023);
-      // The heel block, toe clamp, cuff and boot yaw with the actual ski.
-      mesh(new T.BoxGeometry(.32, .027, .10), sole, ski, .045, -.080);
-      mesh(new T.BoxGeometry(.065, .046, .105), black, ski, .158, -.052);
-      mesh(new T.BoxGeometry(.078, .034, .086), edge, ski, -.079, -.058);
-      ellipsoid(ski, cream, [.04, -.025, 0], [.14, .054, .052]);
-      const cuff = new T.Group();
-      ski.add(cuff);
-      ellipsoid(cuff, navy, [-.012, .028, 0], [.060, .083, .054]);
-      mesh(new T.BoxGeometry(.071, .017, .112), sole, cuff, -.012, .041);
-      mesh(new T.BoxGeometry(.064, .015, .108), sole, cuff, -.011, .069);
-      this.cuffs.push(cuff);
-      this.legs.push({ hip, knee, ankle, ski });
+      const assembly = new SkiAssembly(equipment, side === -1 ? 'left' : 'right');
+      ankle.add(assembly.ski, assembly.boot);
+      this.legs.push({ hip, knee, ankle, ski: assembly.ski, boot: assembly.boot, equipment: assembly });
 
       const arm = new T.Group();
       arm.position.set(-.005, .437, side * .173);
@@ -134,8 +78,28 @@ export class Athlete {
     this.pose(0, 0, 0);
   }
 
+  /** Rebuild only when equipment dimensions change; ordinary posing allocates
+   * no scene objects or geometry. Suitable for the laboratory preview. */
+  setEquipment(config: EquipmentConfig) {
+    const signature = JSON.stringify(config);
+    this.equipmentConfig = config;
+    if (signature === this.equipmentSignature) return;
+    this.equipmentSignature = signature;
+    for (let i = 0; i < this.legs.length; i++) {
+      const leg = this.legs[i];
+      leg.equipment.dispose();
+      leg.equipment = new SkiAssembly(config, i === 0 ? 'left' : 'right');
+      leg.ski = leg.equipment.ski;
+      leg.boot = leg.equipment.boot;
+      leg.ankle.add(leg.ski, leg.boot);
+    }
+  }
+
   pose(extension: number, flightSeconds: number, landing: number, controls?: PoseControl) {
-    const p = jointPose(extension, flightSeconds, landing, controls);
+    if (controls?.equipment && (controls.equipment !== this.equipmentConfig || !Object.isFrozen(controls.equipment))) {
+      this.setEquipment(controls.equipment);
+    }
+    const p = jointPose(extension, flightSeconds, landing, { ...controls, equipment: this.equipmentConfig });
     this.pelvis.position.set(p.hipX, p.hipY, 0);
     this.torso.rotation.z = -p.trunkLean;
     this.head.rotation.z = p.headRotation;
@@ -145,15 +109,18 @@ export class Athlete {
       this.elbows[i].rotation.z = p.elbow;
       this.elbowSleeves[i].bend(p.elbow);
     });
-    this.legs.forEach(({ hip, knee, ankle, ski }, i) => {
+    this.legs.forEach(({ hip, knee, ankle, equipment }, i) => {
       const leg = p.legs[i];
-      hip.rotation.z = leg.upper;
+      this.planeAxis.set(leg.planeAxisX, leg.planeAxisY, 0);
+      this.planeQuaternion.setFromAxisAngle(this.planeAxis, leg.abduction);
+      this.sagittalQuaternion.setFromAxisAngle(this.zAxis, leg.upper);
+      hip.quaternion.copy(this.planeQuaternion).multiply(this.sagittalQuaternion);
       knee.rotation.z = leg.lower - leg.upper;
       this.kneeSleeves[i].bend(knee.rotation.z);
-      ankle.rotation.z = -leg.lower;
-      ski.rotation.z = p.skiPitch;
-      ski.rotation.y = (i === 0 ? 1 : -1) * .25 * p.v;
-      this.cuffs[i].rotation.z = leg.lower * .6;
+      this.sagittalQuaternion.setFromAxisAngle(this.zAxis, leg.lower);
+      ankle.quaternion.copy(this.planeQuaternion).multiply(this.sagittalQuaternion).invert();
+      equipment.pose((i === 0 ? 1 : -1) * p.vAngleRad, p.skiPitch,
+        controls?.skiStates?.[i]?.heelAngleRad ?? 0, leg.lower);
     });
   }
 }

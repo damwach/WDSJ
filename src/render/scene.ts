@@ -3,13 +3,14 @@ import { Athlete } from '../athlete/rig';
 import { createVenue } from '../world/venue';
 import type { Simulation } from '../physics/simulation';
 import {hill,certificate} from '../world/hill';
+import type {SkiBindingState} from '../equipment/model';
 
 export type CameraMode = 'overview' | 'broadcast' | 'athlete';
 
 /** A presentation-only copy. The renderer never writes back into the simulation. */
 export type RenderState = Pick<Simulation,
   'x' | 'y' | 'z' | 'pitch' | 'roll' | 'extension' | 'flightTime' |
-  'landingPose' | 'bodyLean' | 'skiPitch' | 'aftermathTime' | 'time' | 'phase'>;
+  'landingPose' | 'bodyLean' | 'skiPitch' | 'aftermathTime' | 'time' | 'phase'> & {skiStates:SkiBindingState[]};
 
 export function captureRenderState(s: Simulation): RenderState {
   return {
@@ -17,6 +18,7 @@ export function captureRenderState(s: Simulation): RenderState {
     extension: s.extension, flightTime: s.flightTime, landingPose: s.landingPose,
     bodyLean: s.bodyLean, skiPitch: s.skiPitch, aftermathTime: s.aftermathTime,
     time: s.time, phase: s.phase,
+    skiStates:s.skiBindings.skis.map(ski=>({...ski})),
   };
 }
 
@@ -25,14 +27,20 @@ function interpolateState(current: RenderState, previous: RenderState | undefine
   if (!previous || previous.time > current.time || current.time - previous.time > .02 ||
     Math.hypot(current.x - previous.x, current.y - previous.y, current.z - previous.z) > 30) return current;
   const t = T.MathUtils.clamp(alpha, 0, 1);
-  const mix = (key: keyof Omit<RenderState, 'phase'>) => T.MathUtils.lerp(previous[key], current[key], t);
+  const mix = (key: keyof Omit<RenderState, 'phase'|'skiStates'>) => T.MathUtils.lerp(previous[key], current[key], t);
   const angle = (key: 'pitch' | 'roll' | 'bodyLean' | 'skiPitch') => previous[key] +
     Math.atan2(Math.sin(current[key] - previous[key]), Math.cos(current[key] - previous[key])) * t;
+  // Older developer callers supplied a spread Simulation rather than the
+  // dedicated render copy. Preserve that contract as ski state is introduced.
+  const previousSkis=previous.skiStates??(previous as unknown as Partial<Simulation>).skiBindings?.skis??current.skiStates;
   return {
     x: mix('x'), y: mix('y'), z: mix('z'), pitch: angle('pitch'), roll: angle('roll'),
     extension: mix('extension'), flightTime: mix('flightTime'), landingPose: mix('landingPose'),
     bodyLean: angle('bodyLean'), skiPitch: angle('skiPitch'), aftermathTime: mix('aftermathTime'),
     time: mix('time'), phase: current.phase,
+    skiStates:current.skiStates.map((ski,i)=>({...ski,
+      heelAngleRad:T.MathUtils.lerp(previousSkis[i].heelAngleRad,ski.heelAngleRad,t),
+    })),
   };
 }
 
@@ -96,6 +104,7 @@ export class View {
       bodyLean: s.bodyLean, skiPitch: s.skiPitch,
       groundedSeconds: grounded ? s.aftermathTime : undefined,
       impactSpeed: sim.impact, fallen: s.phase === 'fallen',
+      equipment:sim.equipment,skiStates:s.skiStates,totalMassKg:sim.mass,
     });
     this.athlete.root.position.set(s.x, s.y, s.z);
     const fallBlend = T.MathUtils.smoothstep(s.aftermathTime, 0, .35);

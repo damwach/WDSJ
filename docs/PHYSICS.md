@@ -50,3 +50,11 @@ Szerokość kolizji jest tą samą funkcją co widoczna pista (25m przy K, 27.5m
 Testy sprawdzają jednostki sił, skalowanie z prędkością² i gęstością, ortogonalność nośności, rozpraszanie przez opór, poprawną grawitację dla różnych mas, brak momentu w próżni, skończony kontakt w wietrze, normalny pokaz, odpowiedź na czas gestu i zachowanie parametrów podczas resetu.
 
 To model zredukowany, nie pełna dynamika wieloczłonowa ani CFD. Współczynniki Cl/Cd/Cm, masy segmentów, stałe bezwładności (18 kg m² dla pochylenia, 14 kg m² dla przechyłu), ograniczenia napędu i absorpcji są jawnymi założeniami inżynierskimi. Nie skalibrowano ich na danych tunelu aerodynamicznego, sił reakcji ani motion capture. V ma przybliżony wpływ na nośność; brak niezależnej dynamiki każdej narty i modelu wzajemnego oddziaływania przepływu. Kontakt próbkowany jest przy wiązaniach, nie na całej długości nart. Upadek jest uproszczonym ślizgiem, bez ragdolla i symulacji obrażeń. Nie deklarujemy naukowo zwalidowanego realizmu.
+
+## 0.11 — Milestone 1 sprzętu
+
+Dwie narty mają osobne normalne, cięciwy, natarcia i siły; obroty odpowiadają `Rx(roll) Rz(bodyPitch) Ry(±V) Rz(bindingHeel)`. Każdy moment ciśnienia jest liczony względem przedniego mocowania. Istniejące, niezwalidowane `Cm` opisuje moment całego układu względem COM: jego podział na uogólniony moment ciała i momenty nart odejmuje te wkłady z momentu ciała, aby nie naliczyć ich dwukrotnie. Nie jest to pomiar osobnego `Cm` tułowia.
+
+Sprężystość podeszwy/wiązania i tłumienie rozwiązuje wspólnie niejawny krok. Geometryczne ograniczenia pręta przenoszą przeciwne impulsy pomiędzy nartą i ciałem; testy w próżni sprawdzają zachowanie momentu pędu i nieprzyrost energii pasywnej. Nie użyto celu globalnego kąta w swobodnym locie.
+
+COM bierze masy nart, położenia mocowań, odchylenia pięt i przestrzenne IK nóg. Masa domyślna wynika z 70 kg ciała, mas obu nart i 3.6 kg pozostałego sprzętu; jawny override jest masą całkowitą. Kontakt z zeskokiem korzysta z rzeczywistych spodów nart, a orientacja na wybiegu jest integrowana z ograniczonym momentem kontaktowym zamiast przestawiana na sztywno. Kontakt najazdu oraz translacyjna reakcja snow-contact są nadal modelami zredukowanymi. Pełne ograniczenia: [EQUIPMENT.md](EQUIPMENT.md).

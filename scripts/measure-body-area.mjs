@@ -8,7 +8,7 @@ try {
  let minU=Infinity,maxU=-Infinity,minZ=Infinity,maxZ=-Infinity;
  a.root.traverse(o=>{
   if(!o.isMesh)return;
-  for(let p=o;p;p=p.parent)if(a.legs.some(l=>p===l.ski))return;
+  for(let p=o;p;p=p.parent)if(p.userData.equipment)return;
   const pos=o.geometry.getAttribute('position'),ix=o.geometry.index;
   for(let i=0;i<(ix?ix.count:pos.count);i+=3){
    const points=[];

@@ -67,3 +67,15 @@ Testy Chromium porównują widoczne kąty tułowia i obu nart z parametrami obli
 CI Deno zastąpiono kontrolą Node/TypeScript/Vitest/Playwright, po odtworzeniu 63 diagnostyk lintera na jego historycznym commicie. Rzeczywiste dwa zbędne importy usunięto. Dokładny opis i wyniki dostępności źródeł: [CI.md](CI.md), [AERODYNAMIC-AUDIT.md](AERODYNAMIC-AUDIT.md).
 
 Wynik lokalny: build TypeScript/standalone poprawny, **61/61 testów jednostkowych i 14/14 testów Chromium/WebGL**. Testy tunelu nie wykryły błędów strony ani konsoli. Sprawdzono zrzuty desktop i telefon. To weryfikacja programu, nie walidacja aerodynamiczna.
+
+## 0.11 — Milestone 1: narty i wiązania
+
+Build produkcyjny/standalone poprawny; **99/99 testów jednostkowych**. Sprawdzono **16 przypadków Chromium/WebGL**: 15 przeszło w pełnym przebiegu, regresja zgodności starszej kopii stanu renderingu została poprawiona i jej powtórzenie przeszło. CI powtarza pełny zestaw. Nie wyłączono asercji ani błędów.
+
+Dwa nowe testy przeglądarkowe obsługują natywne suwaki pięt, sprawdzają zgodność rzeczywistych osi nart z aerodynamiką, nieruchomy przedni przegub, maksymalną długość tylnego pręta, uniesienie pięty i co najmniej 3 cm odstępu obu rzeczywistych siatek. CSV i pozycje A/B zachowują niezależne kąty pięt. Ekran telefonu 390×844 mieści podgląd i kontrolki. Zrzuty `m1-bindings-neutral-desktop.png`, `m1-bindings-raised-desktop.png`, `m1-bindings-mobile.png`, `m1-bindings-mobile-close.png` obejrzano.
+
+Testy kontaktu porównują 260 punktów spodów nart z rzeczywistymi wierzchołkami sceny. Testy mechaniczne sprawdzają pasywność energii i zachowanie momentu pędu, również na ogranicznikach. Regresje obejmują odłączenie od końca najazdu, spójność mas, brak nagłego przestawiania kąta po kontakcie i brak przenikania spodów nart przez zeskok.
+
+Próbny pokaz daje 107.42 m, 3.55 s lotu i 3.63 m/s składowej normalnej kontaktu. Maksymalna wysokość tylnego punktu buta wynosi 54.93 mm dla domyślnego pręta, a największa zmiana globalnego kąta w pierwszej sekundzie wybiegu wynosi 0.00310 rad na krok (0.18°), wobec błędnego skoku 7.57° wykrytego podczas implementacji. To wynik niezwalidowanego modelu, nie dane rzeczywistego zawodnika. Surowy raport: `artifacts/m1-physics-summary.json`.
+
+Położenie 57% odnosi się do czubka buta; zastosowano podaną przez użytkownika regułę i konserwatywne odrzucanie nominalnej wartości powyżej limitu. Dokładnego oficjalnego zapisu zaokrąglenia FIS nie zweryfikowano niezależnie. Podatność podeszwy/wiązania, rozkład mas, moment aerodynamiczny i kontakt pozostają modelami zredukowanymi; pełny opis: [EQUIPMENT.md](EQUIPMENT.md).
