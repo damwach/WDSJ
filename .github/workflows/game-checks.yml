@@ -54,7 +54,7 @@ jobs:
           name: game-validation-${{ github.run_id }}
           path: |
             artifacts/*.png
-            artifacts/SKYLIFT-0.9.html
+            artifacts/SKYLIFT-*.html
             playwright-report/
             test-results/
           if-no-files-found: warn
