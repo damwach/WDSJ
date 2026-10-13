@@ -146,6 +146,28 @@ const chest: Ring[]=[
   {y:.540,rx:.041,rz:.045,cx:-.005}
 ];
 
+/** Tiny stitched bib strokes follow the curved cloth, never planar decals. */
+function raceNumber(root: T.Group, back: boolean) {
+  const digits = [
+    [[-.029,.031],[-.013,.047],[-.013,-.039]],
+    [[.003,.034],[.011,.045],[.031,.048],[.047,.039],[.048,.023],
+      [.039,.008],[.007,-.033],[.006,-.040],[.050,-.040]]
+  ];
+  for (const path of digits) {
+    const points = path.map(([zOffset,yOffset]) => {
+      const y=.330+yOffset;
+      const z=back?zOffset:-zOffset;
+      const a=Math.asin(clamp(z / section(chest,'rz',y),-.95,.95));
+      const angle=back?Math.PI-a:a;
+      const [x,py,pz]=point(chest,y,angle,{shape:'torso',offset:.006});
+      return new T.Vector3(x,py,pz);
+    });
+    const tube=mesh(root,new T.TubeGeometry(new T.CatmullRomCurve3(points,false,'centripetal'),
+      30,.0027,6,false),m.navy,'bib-number-12');
+    tube.castShadow=false;
+  }
+}
+
 export function makeHumanTorso() {
   const root=new T.Group();root.name='anatomically-tailored-torso';
   fabric(root,chest,m.suit,'suit-chest-and-back',{shape:'torso'});
@@ -160,6 +182,7 @@ export function makeHumanTorso() {
     fabric(root,chest,m.navy,'bib-bottom-seam',{start:center-1.01,arc:2.02,offset:.0038,shape:'torso',minY:.230,maxY:.238});
     fabric(root,chest,m.suit,'bib-top-border',{start:center-1.00,arc:2,offset:.004,shape:'torso',minY:.416,maxY:.429});
   }
+  raceNumber(root,false); raceNumber(root,true);
   // Shoulder/trapezius forms belong to the torso; arm caps rotate with the arms.
   for(const side of [-1,1]){
     const shoulder=mesh(root,new T.SphereGeometry(1,28,20),m.suit,'trapezius-shoulder-transition');
