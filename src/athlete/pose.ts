@@ -137,7 +137,10 @@ export function jointPose(extension: number, flightSeconds = 0, landing = 0, con
   const shoulder = mix(mix(.05, -.04, chestDrive), .075, flight) + .34 * contact - .13 * recovery;
   return {
     hipX, hipY, legs, trunkLean, flight, contact, v, vAngleRad, ankleHalfSeparationM, ankleHeightM,
-    headRotation: trunkLean - mix(.11, .36, chestTransfer * (1 - contact)),
+    // The helmet follows the inclined thorax with only modest neck extension.
+    // Previously a near-full counter-rotation kept the skull artificially upright
+    // while the chest lay almost horizontal, creating a swan-neck silhouette.
+    headRotation: mix(.29, .38, chestTransfer * (1 - contact)) * (1 - contact) + .14 * contact,
     shoulder, armSpread: .028 + .015 * flight + .21 * contact - .12 * recovery,
     elbow: -.12 + .035 * flight - .29 * contact + .13 * recovery,
     skiPitch: clamp(controls.skiPitch ?? 0, -.5, .5) * flight * (1 - contact),
