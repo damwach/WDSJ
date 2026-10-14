@@ -77,18 +77,21 @@ function startApp() {
     const windowOpen = sim.x > -8 && sim.phase === 'inrun' && !sim.takeoffClicked;
     document.body.dataset.window = windowOpen ? 'takeoff' : '';
     el('notice').textContent = sim.phase === 'ready' ? 'Obejrzyj skocznię lub rozpocznij trening'
-      : windowOpen ? 'TERAZ · kliknij lewym przyciskiem, aby wybić się'
-      : sim.phase === 'inrun' && sim.takeoffClicked ? 'Wybicie trwa · praca nóg i reakcja podłoża'
+      : windowOpen ? 'TERAZ · naciśnij lewy i prawy przycisk razem'
+      : sim.phase === 'inrun' && sim.takeoffClicked ?
+          sim.takeoffLegTimes.includes(null) ? 'Wybicie trwa · naciśnij drugi przycisk!' :
+          `Wybicie obu nóg · różnica ${(sim.takeoffPressGapMs??0).toFixed(0)} ms`
       : sim.phase === 'fallen' ? `Upadek przy ${sim.resultDistance.toFixed(1)} m · kontakt ${sim.impact.toFixed(1)} m/s · R, aby powtórzyć`
       : sim.phase === 'landed' ? `Lądowanie ${sim.resultDistance.toFixed(1)} m · kontakt ${sim.impact.toFixed(1)} m/s · R, aby powtórzyć`
-      : inAir ? sim.takeoffClickX===null ? 'Lot · bez aktywnego wybicia' : `Wybicie ${(-sim.takeoffClickX).toFixed(1)} m przed progiem · impuls ${Math.round(sim.takeoffImpulse)} N·s · prowadź sylwetkę ↑↓`
+      : inAir ? sim.takeoffClickX===null ? 'Lot · bez aktywnego wybicia' :
+          `Wybicie ${(-sim.takeoffClickX).toFixed(1)} m przed progiem · różnica nóg ${sim.takeoffPressGapMs===null?'brak drugiego kliknięcia':sim.takeoffPressGapMs.toFixed(0)+' ms'} · impuls ${Math.round(sim.takeoffImpulse)} N·s`
       : sim.demo ? 'Pokaz techniki · automatyczne wybicie' : 'Zbliżasz się do progu · przygotuj wybicie';
   }
   function frame(time: number) {
     const dt = last ? (time - last) / 1000 : 0;
     last = time;
     if (!paused && !tunnel.isOpen) {
-      if (input.consumeClicks()>0) sim.clickTakeoff();
+      for (const press of input.consumePresses()) sim.clickTakeoff(press.side,press.timeStamp);
       input.consume(); // discard obsolete drag gestures; click timing is the only takeoff input
       for (const motion of input.consumeMotion()) sim.trim(motion.up,motion.side);
       clock.advance(dt, () => {
