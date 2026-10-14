@@ -1,0 +1,27 @@
+name: Prepare WDSJ athlete photo references
+
+on:
+  push:
+    branches: ["assets/athlete-references"]
+    paths:
+      - ".github/workflows/athlete-references.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download and validate five freely licensed reference JPGs
+        run: python3 scripts/collect-athlete-references.py
+      - name: Commit binary photos to the reference branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add references/athlete/*.jpg
+          if ! git diff --cached --quiet; then
+            git commit -m "assets: store five licensed offline ski-jumper references"
+            git push origin HEAD:assets/athlete-references
+          fi
