@@ -105,10 +105,10 @@ test('two buttons independently trigger takeoff without a drag gesture', async (
   await page.locator('#scene').dispatchEvent('pointermove',{buttons:3,movementY:-70,movementX:30});
   await page.waitForTimeout(40);
   expect(await page.evaluate(()=>(window as any).SKYLIFT.sim.takeoffClicked)).toBe(false);
-  await page.locator('#scene').dispatchEvent('pointerdown',{button:0,buttons:1,timeStamp:1000});
+  await page.locator('#scene').dispatchEvent('mousedown',{button:0,buttons:1,timeStamp:1000});
   await expect.poll(()=>page.evaluate(()=>(window as any).SKYLIFT.sim.takeoffLegTimes[0])).not.toBeNull();
   expect(await page.evaluate(()=>(window as any).SKYLIFT.sim.takeoffLegTimes[1])).toBeNull();
-  await page.locator('#scene').dispatchEvent('pointerdown',{button:2,buttons:3,timeStamp:1030});
+  await page.locator('#scene').dispatchEvent('mousedown',{button:2,buttons:3,timeStamp:1030});
   await expect.poll(()=>page.evaluate(()=>(window as any).SKYLIFT.sim.takeoffPressGapMs)).not.toBeNull();
   expect(await page.evaluate(()=>(window as any).SKYLIFT.sim.target)).toBe(1);
   expect(await page.evaluate(()=>(window as any).SKYLIFT.sim.eccentricity)).toBe(0);
