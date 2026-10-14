@@ -20,6 +20,7 @@ export class Simulation {
   pitch=Math.atan(slope(this.x));omega=0;roll=0;rollRate=0;
   extension=0;extensionRate=0;target=0;stroke=0;effort=0;eccentricity=0;
   normalVelocity=0;normalForce=0;takeoffImpulse=0;muscleWork=0;
+  takeoffClicked=false;takeoffClickX:number|null=null;takeoffElapsed=0;
   gestureDuration=0;gestureSpeed=0;private gestureUp=0;private gestureSide=0;
   flightTime=0;time=0;phase='ready';demo=false;wind=0;crossWind=0;impact=0;
   bodyLean=1.27;skiPitch=0;pilotBank=0;landingPose=0;resultDistance=0;aftermathTime=0;
@@ -40,6 +41,15 @@ export class Simulation {
     this.updateContactCom();
   }
   reset(demo=false){const options=this.options,wind=this.wind,crossWind=this.crossWind;Object.assign(this,new Simulation(options));this.wind=wind;this.crossWind=crossWind;this.demo=demo;this.phase='inrun';}
+  /** One-button takeoff: the player chooses timing, not an artificial impulse
+   * magnitude. The leg actuator develops force over subsequent 120 Hz steps. */
+  clickTakeoff(): boolean {
+    if(this.phase!=='inrun'||this.x< -8||this.x>=0||this.takeoffClicked)return false;
+    this.takeoffClicked=true;this.takeoffClickX=this.x;this.takeoffElapsed=0;
+    this.stroke=1;this.target=1;this.effort=1;this.gestureSpeed=600;this.eccentricity=0;
+    return true;
+  }
+  /** Retained for existing replay/tests; ordinary player input uses clickTakeoff. */
   gesture(g:Gesture){
     if(this.phase!=='inrun'||this.x<-8||!Number.isFinite(g.up+g.side+g.duration)||g.duration<=0)return;
     this.gestureDuration+=g.duration;this.gestureUp+=Math.max(0,g.up);this.gestureSide+=g.side;
@@ -51,7 +61,8 @@ export class Simulation {
   trim(up:number,side:number){
     if(this.phase!=='flight')return;
     this.bodyLean=clamp(this.bodyLean+up*.001,1.05,1.42);
-    this.pilotBank=clamp(this.pilotBank+side*.001,-.3,.3);
+    // Lateral corrections are automatic. Horizontal pointer movement has no effect.
+    void side;
   }
   /** Test/replay entry: x/y/z are physical COM coordinates, velocity is m/s. */
   setAirborne(s:{x:number;y:number;z?:number;vx:number;vy:number;vz?:number;pitch?:number;omega?:number}){
@@ -88,17 +99,22 @@ export class Simulation {
     const angle=Math.atan(slope(this.x));this.pitch=angle;
     const drag=.5*this.airDensity*.22*this.v*this.v;
     this.v+=(-this.gravity*Math.sin(angle)-.02*this.gravity*Math.cos(angle)-drag/this.mass)*DT;
-    if(this.demo&&this.x>-6.5)this.gesture({up:500*DT,side:0,duration:DT});
+    if(this.demo&&!this.takeoffClicked&&this.x>=-6.0)this.clickTakeoff();
+    if(this.takeoffClicked)this.takeoffElapsed+=DT;
     const h0=centerOfMassOffset(0,0,0,this.bodyLean,this.poseControls()).y,h1=centerOfMassOffset(1,0,0,this.bodyLean,this.poseControls()).y;
     const wantedH=centerOfMassOffset(this.target,0,0,this.bodyLean,this.poseControls()).y;
-    const commandVelocity=clamp(this.gestureSpeed/120*(h1-h0),0,4.1);
+    // Muscle activation has a finite rise time after the click; no frame impulse.
+    const activation=this.takeoffClicked?clamp(this.takeoffElapsed/.045,0,1):1;
+    const commandVelocity=clamp(this.gestureSpeed/120*(h1-h0)*activation,0,4.1);
     // A muscle-actuated prismatic leg model: N=m(g_n+curvature+dh²/dt²).
     // Maximum force/work limit the actuator; extension is inverse FK of COM rise.
     const desiredVelocity=Math.min(Math.max(0,(wantedH-this.contactHeight)/.045),commandVelocity);
     const desiredAcceleration=(desiredVelocity-this.normalVelocity)/.040;
     const curvature=inrunCurvature(this.x);
     const baseline=this.gravity*Math.cos(angle)+this.v*this.v*curvature;
-    const maxForce=this.mass*this.gravity*3.4;
+    // Experimental peak ground reaction ~25-28 N/kg (about 2.6-2.9 BW).
+    // This is a configurable-model starting point, not a calibrated force curve.
+    const maxForce=this.mass*this.gravity*(this.takeoffClicked?2.85:3.4);
     const rawForce=this.mass*(baseline+desiredAcceleration);
     if(rawForce<0&&this.normalVelocity>.35){this.launch();return;}
     this.normalForce=clamp(rawForce,0,maxForce);
