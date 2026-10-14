@@ -77,17 +77,18 @@ function startApp() {
     const windowOpen = sim.x > -8 && sim.phase === 'inrun';
     document.body.dataset.window = windowOpen ? 'takeoff' : '';
     el('notice').textContent = sim.phase === 'ready' ? 'Obejrzyj skocznię lub rozpocznij trening'
-      : windowOpen ? 'TERAZ · oba przyciski + płynny ruch w górę'
+      : windowOpen ? 'TERAZ · kliknij lewym przyciskiem, aby wybić się'
       : sim.phase === 'fallen' ? `Upadek przy ${sim.resultDistance.toFixed(1)} m · kontakt ${sim.impact.toFixed(1)} m/s · R, aby powtórzyć`
       : sim.phase === 'landed' ? `Lądowanie ${sim.resultDistance.toFixed(1)} m · kontakt ${sim.impact.toFixed(1)} m/s · R, aby powtórzyć`
-      : inAir ? 'Lot · obserwuj pozycję ciała i nart'
+      : inAir ? 'Lot · prowadź sylwetkę pionowym ruchem myszy'
       : sim.demo ? 'Pokaz techniki · automatyczne wybicie' : 'Zbliżasz się do progu · przygotuj wybicie';
   }
   function frame(time: number) {
     const dt = last ? (time - last) / 1000 : 0;
     last = time;
     if (!paused && !tunnel.isOpen) {
-      for (const gesture of input.consume()) sim.gesture(gesture);
+      if (input.consumeClicks()>0) sim.clickTakeoff();
+      input.consume(); // discard obsolete drag gestures; click timing is the only takeoff input
       for (const motion of input.consumeMotion()) sim.trim(motion.up,motion.side);
       clock.advance(dt, () => {
         previousRenderState = captureRenderState(sim);
