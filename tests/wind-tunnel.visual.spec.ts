@@ -20,16 +20,16 @@ async function specimenState(page: Page) {
     let maxX = 0, maxY = 0, minHeight = Infinity;
     lab.athlete.root.traverse((object: any) => {
       if (!object.isMesh) return;
-      if (!object.geometry.boundingBox) object.geometry.computeBoundingBox();
-      const b = object.geometry.boundingBox;
-      for (const x of [b.min.x, b.max.x]) for (const y of [b.min.y, b.max.y])
-        for (const z of [b.min.z, b.max.z]) {
-          const point = lab.camera.position.clone().set(x, y, z).applyMatrix4(object.matrixWorld);
-          minHeight = Math.min(minHeight, point.y);
-          const projected = point.project(lab.camera);
-          maxX = Math.max(maxX, Math.abs(projected.x));
-          maxY = Math.max(maxY, Math.abs(projected.y));
-        }
+      // Measure actual deformed vertices, not the GLB bind-pose geometry box.
+      const point = lab.camera.position.clone();
+      for (let i=0;i<object.geometry.getAttribute('position').count;i++) {
+        object.getVertexPosition(i,point);
+        point.applyMatrix4(object.matrixWorld);
+        minHeight=Math.min(minHeight,point.y);
+        point.project(lab.camera);
+        maxX=Math.max(maxX,Math.abs(point.x));
+        maxY=Math.max(maxY,Math.abs(point.y));
+      }
     });
     return { settings: lab.settings as TunnelSettings,
       pitch: lab.athlete.root.rotation.z, lean: -lab.athlete.torso.rotation.z,

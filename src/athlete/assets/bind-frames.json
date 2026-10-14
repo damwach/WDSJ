@@ -1,0 +1,192 @@
+[
+  {
+    "name": "pelvis",
+    "target": "pelvis",
+    "joint": [
+      0,
+      0,
+      0
+    ],
+    "angle": 0
+  },
+  {
+    "name": "spine",
+    "target": "torso",
+    "joint": [
+      0,
+      0.09,
+      0
+    ],
+    "angle": 0
+  },
+  {
+    "name": "chest",
+    "target": "torso",
+    "joint": [
+      0,
+      0.28,
+      0
+    ],
+    "angle": 0
+  },
+  {
+    "name": "neck",
+    "target": "torso",
+    "joint": [
+      0,
+      0.51,
+      0
+    ],
+    "angle": 0
+  },
+  {
+    "name": "head",
+    "target": "head",
+    "joint": [
+      0.006,
+      0.558,
+      0
+    ],
+    "angle": 0
+  },
+  {
+    "name": "thigh_L",
+    "target": "hip_L",
+    "joint": [
+      0,
+      0,
+      -0.105
+    ],
+    "angle": 0
+  },
+  {
+    "name": "shin_L",
+    "target": "knee_L",
+    "joint": [
+      0,
+      -0.44,
+      -0.105
+    ],
+    "angle": 0
+  },
+  {
+    "name": "ankle_L",
+    "target": "ankle_L",
+    "joint": [
+      0,
+      -0.87,
+      -0.105
+    ],
+    "angle": 0
+  },
+  {
+    "name": "clavicle_L",
+    "target": "torso",
+    "joint": [
+      0,
+      0.437,
+      -0.07
+    ],
+    "angle": 0
+  },
+  {
+    "name": "arm_L",
+    "target": "arm_L",
+    "joint": [
+      -0.005,
+      0.437,
+      -0.173
+    ],
+    "angle": 0.42
+  },
+  {
+    "name": "forearm_L",
+    "target": "elbow_L",
+    "joint": [
+      -0.005,
+      0.17220420730943065,
+      -0.2912505313872753
+    ],
+    "angle": 0.42
+  },
+  {
+    "name": "wrist_L",
+    "target": "wrist_L",
+    "joint": [
+      -0.005,
+      -0.0560680277686465,
+      -0.3931906446521679
+    ],
+    "angle": 0.42
+  },
+  {
+    "name": "thigh_R",
+    "target": "hip_R",
+    "joint": [
+      0,
+      0,
+      0.105
+    ],
+    "angle": 0
+  },
+  {
+    "name": "shin_R",
+    "target": "knee_R",
+    "joint": [
+      0,
+      -0.44,
+      0.105
+    ],
+    "angle": 0
+  },
+  {
+    "name": "ankle_R",
+    "target": "ankle_R",
+    "joint": [
+      0,
+      -0.87,
+      0.105
+    ],
+    "angle": 0
+  },
+  {
+    "name": "clavicle_R",
+    "target": "torso",
+    "joint": [
+      0,
+      0.437,
+      0.07
+    ],
+    "angle": 0
+  },
+  {
+    "name": "arm_R",
+    "target": "arm_R",
+    "joint": [
+      -0.005,
+      0.437,
+      0.173
+    ],
+    "angle": -0.42
+  },
+  {
+    "name": "forearm_R",
+    "target": "elbow_R",
+    "joint": [
+      -0.005,
+      0.17220420730943065,
+      0.2912505313872753
+    ],
+    "angle": -0.42
+  },
+  {
+    "name": "wrist_R",
+    "target": "wrist_R",
+    "joint": [
+      -0.005,
+      -0.0560680277686465,
+      0.3931906446521679
+    ],
+    "angle": -0.42
+  }
+]

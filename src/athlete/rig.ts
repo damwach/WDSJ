@@ -1,7 +1,6 @@
 import * as T from 'three';
 import { jointPose, dimensions, hipHalfWidthM, type PoseControl } from './pose';
-import { makeJointSleeve } from './surfaces';
-import { makeHumanTorso, makeHumanPelvis, makeHumanLimb, makeHumanHead, makeHumanGlove } from './human';
+import { AthleteSkin } from './skin';
 import { DEFAULT_EQUIPMENT, type EquipmentConfig } from '../equipment/config';
 import { SkiAssembly } from '../equipment/visual';
 export { dimensions } from './pose';
@@ -16,8 +15,8 @@ export class Athlete {
   arms: T.Group[] = [];
   private elbows: T.Group[] = [];
   private head = new T.Group();
-  private kneeSleeves: ReturnType<typeof makeJointSleeve>[] = [];
-  private elbowSleeves: ReturnType<typeof makeJointSleeve>[] = [];
+  private skin: AthleteSkin;
+  private wrists: T.Group[] = [];
   private planeQuaternion = new T.Quaternion();
   private sagittalQuaternion = new T.Quaternion();
   private planeAxis = new T.Vector3();
@@ -31,11 +30,8 @@ export class Athlete {
     this.root.name = 'ski-jumper';
     this.root.add(this.pelvis);
     this.pelvis.add(this.torso);
-    this.pelvis.add(makeHumanPelvis());
-    this.torso.add(makeHumanTorso());
     this.head.name = 'helmet-and-head';
     this.head.position.set(.006, .558, 0);
-    this.head.add(makeHumanHead());
     this.torso.add(this.head);
 
     for (const side of [-1, 1] as const) {
@@ -43,15 +39,10 @@ export class Athlete {
       hip.name = side === -1 ? 'left-hip' : 'right-hip';
       hip.position.z = side * hipHalfWidthM;
       this.pelvis.add(hip);
-      hip.add(makeHumanLimb(dimensions.thigh, 'thigh', side));
       const knee = new T.Group();
       knee.name = side === -1 ? 'left-knee' : 'right-knee';
       knee.position.y = -dimensions.thigh;
       hip.add(knee);
-      knee.add(makeHumanLimb(dimensions.shin, 'shin', side));
-      const kneeSleeve = makeJointSleeve('knee');
-      knee.add(kneeSleeve.object);
-      this.kneeSleeves.push(kneeSleeve);
       const ankle = new T.Group();
       ankle.position.y = -dimensions.shin;
       knee.add(ankle);
@@ -62,20 +53,23 @@ export class Athlete {
       const arm = new T.Group();
       arm.position.set(-.005, .437, side * .173);
       this.torso.add(arm);
-      arm.add(makeHumanLimb(.29, 'upperArm', side));
       const elbow = new T.Group();
       elbow.position.y = -.29;
       arm.add(elbow);
-      elbow.add(makeHumanLimb(.25, 'forearm', side));
-      const elbowSleeve = makeJointSleeve('elbow');
-      elbow.add(elbowSleeve.object);
-      this.elbowSleeves.push(elbowSleeve);
-      const glove = makeHumanGlove(side);
-      glove.position.y = -.25;
-      elbow.add(glove);
+      const wrist = new T.Group();
+      wrist.position.y = -.25;
+      elbow.add(wrist);
+      this.wrists.push(wrist);
       this.arms.push(arm);
       this.elbows.push(elbow);
     }
+    const targets: Record<string,T.Object3D> = {pelvis:this.pelvis,torso:this.torso,head:this.head};
+    for (const [i,s] of ['L','R'].entries()) {
+      Object.assign(targets,{['hip_'+s]:this.legs[i].hip,['knee_'+s]:this.legs[i].knee,
+        ['ankle_'+s]:this.legs[i].ankle,['arm_'+s]:this.arms[i],
+        ['elbow_'+s]:this.elbows[i],['wrist_'+s]:this.wrists[i]});
+    }
+    this.skin = new AthleteSkin(this.root,targets);
     this.pose(0, 0, 0);
   }
 
@@ -108,7 +102,6 @@ export class Athlete {
       arm.rotation.z = p.shoulder;
       arm.rotation.x = (i === 0 ? 1 : -1) * p.armSpread;
       this.elbows[i].rotation.z = p.elbow;
-      this.elbowSleeves[i].bend(p.elbow);
     });
     this.legs.forEach(({ hip, knee, ankle, equipment }, i) => {
       const leg = p.legs[i];
@@ -117,11 +110,13 @@ export class Athlete {
       this.sagittalQuaternion.setFromAxisAngle(this.zAxis, leg.upper);
       hip.quaternion.copy(this.planeQuaternion).multiply(this.sagittalQuaternion);
       knee.rotation.z = leg.lower - leg.upper;
-      this.kneeSleeves[i].bend(knee.rotation.z);
       this.sagittalQuaternion.setFromAxisAngle(this.zAxis, leg.lower);
       ankle.quaternion.copy(this.planeQuaternion).multiply(this.sagittalQuaternion).invert();
       equipment.pose((i === 0 ? 1 : -1) * p.vAngleRad, p.skiPitch,
         controls?.skiStates?.[i]?.heelAngleRad ?? 0, leg.lower);
     });
+    this.syncSkin();
   }
+
+  syncSkin() { this.skin.update(); }
 }

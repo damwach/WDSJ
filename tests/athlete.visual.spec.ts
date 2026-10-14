@@ -67,7 +67,7 @@ test('render interpolation is smooth and cannot change physical state', async ({
   expect(result.exactError).toBe(0);
 });
 
-test('isolated anatomical poses render with a stable procedural mesh', async ({page}) => {
+test('isolated anatomical poses render with a loaded skinned GLB', async ({page}) => {
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
   // Keep the actual module/renderer, but render controlled poses without a live

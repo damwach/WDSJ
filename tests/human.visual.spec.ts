@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('sculpted athlete silhouette from front, side, rear and three-quarter angles', async ({page}) => {
+test('skinned GLB athlete silhouette from front, side, rear and three-quarter angles', async ({page}) => {
   const errors: string[]=[];
   page.on('pageerror',e=>errors.push(e.message));
   page.on('console',msg=>{if(msg.type()==='error')errors.push(msg.text());});
@@ -28,11 +28,11 @@ test('sculpted athlete silhouette from front, side, rear and three-quarter angle
       v.camera.position.set(x,y,z);v.camera.lookAt(.33,.76,0);
       v.camera.updateProjectionMatrix();
       v.renderer.render(v.scene,v.camera);
-      let count=0,faces=0;
-      athlete.root.traverse((o:any)=>{if(o.isMesh){count++;faces+=o.geometry.index?o.geometry.index.count/3:o.geometry.getAttribute('position').count/3;}});
-      return {count,faces};
+      let count=0,faces=0,skinned=0;
+      athlete.root.traverse((o:any)=>{if(o.isMesh){count++;if(o.isSkinnedMesh)skinned++;faces+=o.geometry.index?o.geometry.index.count/3:o.geometry.getAttribute('position').count/3;}});
+      return {count,faces,skinned};
     },{x,y,z});
-    expect(stats.count).toBeGreaterThan(40);
+    expect(stats.skinned).toBeGreaterThan(0);
     expect(stats.faces).toBeGreaterThan(10000);
     await page.screenshot({path:'artifacts/anatomy-'+name+'.png'});
   }
