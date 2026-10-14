@@ -26,7 +26,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: ${{ inputs.preview_ref || github.sha }}
+          # Serve the validated 0.11 review revision while the feature PRs remain open.
+          # For a normal main release, restore github.sha as the fallback.
+          ref: ${{ inputs.preview_ref || '2d2e4fb379df09547276ce45a5f1936ebcd825a2' }}
       - name: Pin the selected revision for validation and build
         id: commit
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
