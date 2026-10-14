@@ -1,11 +1,20 @@
 export interface Gesture { up:number; side:number; duration:number }
 export class GestureInput {
   private queue:Gesture[]=[];
+  private presses:{side:'left'|'right';timeStamp:number}[]=[];
   private motion:{up:number;side:number}[]=[];
   private lastTime:number|null=null;
   constructor(canvas:HTMLCanvasElement){
     canvas.addEventListener('contextmenu',event=>event.preventDefault());
-    canvas.addEventListener('pointerdown',event=>{if((event.buttons&3)===3)this.lastTime=event.timeStamp;});
+    // PointerEvent 'pointerdown' is only fired for the first depressed mouse
+    // button; pressing right while holding left does NOT dispatch a second
+    // pointerdown. MouseEvent 'mousedown' fires once for EACH button, so it
+    // preserves both independent leg signals during chorded presses.
+    canvas.addEventListener('mousedown',event=>{
+      if(event.button===0||event.button===2)
+        this.presses.push({side:event.button===0?'left':'right',timeStamp:event.timeStamp});
+      if((event.buttons&3)===3)this.lastTime=event.timeStamp;
+    });
     canvas.addEventListener('pointermove',event=>{
       this.motion.push({up:-event.movementY,side:event.movementX});
       if((event.buttons&3)!==3){this.lastTime=null;return;}
@@ -19,7 +28,8 @@ export class GestureInput {
     window.addEventListener('pointerup',()=>{this.lastTime=null});
     window.addEventListener('blur',()=>this.clear());
   }
+  consumePresses(){return this.presses.splice(0);}
   consume(){return this.queue.splice(0)}
   consumeMotion(){return this.motion.splice(0)}
-  clear(){this.queue=[];this.motion=[];this.lastTime=null}
+  clear(){this.queue=[];this.motion=[];this.lastTime=null;this.presses=[]}
 }

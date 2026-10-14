@@ -21,7 +21,7 @@
   </section>
   <section id="help-panel" hidden>
     <strong>Twoje wybicie</strong>
-    <p>Na ostatnich 8 metrach trzymaj oba przyciski myszy i płynnie przesuń ją w górę. Długość, szybkość i czas gestu sterują siłą i szybkością wyprostu. Ruch w bok przesuwa linię reakcji. W locie ruch góra/dół zmienia sylwetkę, a w bok balans.</p>
+    <p>Podczas ostatnich 8 metrów naciśnij lewy i prawy przycisk myszy możliwie równocześnie. Każdy przycisk uruchamia wyprost jednej nogi trwający ułamek sekundy. Różnica chwili naciśnięcia powoduje asymetrię siły i możliwy przechył. Niczego nie przeciągaj. Po oderwaniu prowadź sylwetkę ruchem myszy góra/dół; ruch na boki nie steruje lotem.</p>
     <p><kbd>R</kbd> Powtórz <kbd>Spacja</kbd> Pauza <kbd>C</kbd> Kamera</p>
     <label for="wind">Wiatr wzdłuż skoczni <output id="wind-value">0.0 m/s</output></label><input id="wind" type="range" min="-4" max="4" step="0.5" value="0"><small>Minus: pod narty · Plus: w plecy</small><small>Model sił i momentów. Lot i lądowanie w fazie rozwoju.</small>
   </section>
@@ -35,10 +35,10 @@
   <section class="telemetry" aria-label="Parametry ruchu">
     <div class="metric"><label>PRĘDKOŚĆ</label><strong id="speed">0.0 <small>km/h</small></strong></div>
     <div class="metric"><label id="distance-label">DO PROGU</label><strong id="distance">40.0 <small>m</small></strong></div>
-    <div class="extension-metric"><label>WYPROST NÓG <span id="extension-value">0%</span></label><div class="bar"><i id="extension"></i></div><small>OBA PRZYCISKI + RUCH W GÓRĘ ↑</small></div>
+    <div class="extension-metric"><label>WYPROST NÓG <span id="extension-value">0%</span></label><div class="bar"><i id="extension"></i></div><small>LEWY + PRAWY · RÓWNO I W DOBRYM MOMENCIE</small></div>
   </section>
   <footer>
-    <div class="short-help"><span class="mouse">↑</span><div><b>Poczuj moment wybicia</b><span>Ostatnie 8 m · oba przyciski + ruch w górę</span></div></div>
+    <div class="short-help"><span class="mouse">↑</span><div><b>Poczuj moment wybicia</b><span>Ostatnie 8 m · dwa przyciski, jedno równe wybicie</span></div></div>
     <div class="actions"><button id="open-tunnel" title="Otwórz tunel aerodynamiczny">Tunel aerodynamiczny</button><button id="pause" title="Spacja">Pauza</button><button id="demo">Pokaz techniki</button><button id="start" class="primary">Rozpocznij najazd <span>↗</span></button></div>
   </footer>
   <div id="fatal-error" hidden role="alert"></div>
