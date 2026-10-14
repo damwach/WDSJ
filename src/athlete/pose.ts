@@ -85,8 +85,8 @@ export function jointPose(extension: number, flightSeconds = 0, landing = 0, con
   const chestTransfer = smooth(flightSeconds, .035, .32);
   const flight = smooth(flightSeconds, .035, .44);
   const lean = clamp(controls.bodyLean ?? 1.27, .4, 1.52);
-  let upper = mix(mix(1.24, .14, hipDrive), -.86, legTransfer);
-  let lower = mix(mix(-.53, -.10, kneeDrive), -1.10, legTransfer);
+  let upper = mix(mix(1.24, .14, hipDrive), -1.04, legTransfer);
+  let lower = mix(mix(-.53, -.10, kneeDrive), -1.18, legTransfer);
   let trunkLean = mix(mix(1.17, .72, chestDrive), lean, chestTransfer);
   upper = mix(upper, .52, contact);
   lower = mix(lower, -.32, contact);
@@ -140,8 +140,8 @@ export function jointPose(extension: number, flightSeconds = 0, landing = 0, con
     // The helmet follows the inclined thorax with only modest neck extension.
     // Previously a near-full counter-rotation kept the skull artificially upright
     // while the chest lay almost horizontal, creating a swan-neck silhouette.
-    headRotation: mix(.29, .38, chestTransfer * (1 - contact)) * (1 - contact) + .14 * contact,
-    shoulder, armSpread: .028 + .015 * flight + .21 * contact - .12 * recovery,
+    headRotation: mix(.29, .22, chestTransfer * (1 - contact)) * (1 - contact) + .14 * contact,
+    shoulder: shoulder + clamp(lean - 1.27, -.15, .15) * .12 * flight * (1 - contact), armSpread: .115 + .03 * flight + .92 * contact - .87 * recovery,
     elbow: -.12 + .035 * flight - .29 * contact + .13 * recovery,
     skiPitch: clamp(controls.skiPitch ?? 0, -.5, .5) * flight * (1 - contact),
   };

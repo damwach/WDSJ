@@ -243,7 +243,7 @@ export class WindTunnelPanel {
         bounds.union(new T.Box3().setFromObject(this.athlete.root.getObjectByName(name)!));
       bounds.expandByScalar(.04);
     } else {
-      bounds.setFromObject(this.athlete.root).expandByScalar(.15);
+      bounds.setFromObject(this.athlete.root, true).expandByScalar(.15);
       for (const arrow of [this.liftArrow, this.dragArrow])
         if (arrow?.visible) bounds.union(new T.Box3().setFromObject(arrow));
     }
@@ -316,7 +316,7 @@ export class WindTunnelPanel {
       const root = this.athlete.root;
       root.rotation.z = tilt;
       root.position.y = 0;
-      const specimen = new T.Box3().setFromObject(root);
+      const specimen = new T.Box3().setFromObject(root, true);
       // Presentation translation only: the suspended specimen must not sink
       // into the display floor when incidence changes. Flight physics is intact.
       root.position.y = Math.max(0, .12 - specimen.min.y);

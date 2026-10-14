@@ -3,6 +3,7 @@ import {createServer} from 'vite';
 const server=await createServer({server:{middlewareMode:true},logLevel:'silent'});
 try {
  const {Athlete}=await server.ssrLoadModule('/src/athlete/rig.ts');
+ const {loadAthleteAsset}=await server.ssrLoadModule('/src/athlete/skin.ts');await loadAthleteAsset();
  const a=new Athlete();a.pose(1,1,0);a.root.updateMatrixWorld(true);
  const beta=Math.PI/2-1.27,c=Math.cos(beta),s=Math.sin(beta),triangles=[];
  let minU=Infinity,maxU=-Infinity,minZ=Infinity,maxZ=-Infinity;
@@ -13,7 +14,7 @@ try {
   for(let i=0;i<(ix?ix.count:pos.count);i+=3){
    const points=[];
    for(let j=0;j<3;j++){
-    const k=ix?ix.getX(i+j):i+j,v=a.root.position.clone().set(pos.getX(k),pos.getY(k),pos.getZ(k)).applyMatrix4(o.matrixWorld);
+    const k=ix?ix.getX(i+j):i+j,v=a.root.position.clone();o.getVertexPosition(k,v);v.applyMatrix4(o.matrixWorld);
     const u=v.x*c+v.y*s,z=v.z;points.push([u,z]);minU=Math.min(minU,u);maxU=Math.max(maxU,u);minZ=Math.min(minZ,z);maxZ=Math.max(maxZ,z);
    }
    triangles.push(points);

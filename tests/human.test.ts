@@ -1,62 +1,44 @@
 import { describe, expect, it } from 'vitest';
 import * as T from 'three';
 import { Athlete } from '../src/athlete/rig';
-import { dimensions } from '../src/athlete/pose';
 
-function bodyMeshes(athlete: Athlete) {
-  const found: T.Mesh[] = [];
-  athlete.root.traverse(o => {
-    if (!(o instanceof T.Mesh)) return;
-    for (let p: T.Object3D | null = o; p; p = p.parent)
-      if (p.userData.equipment) return;
-    found.push(o);
-  });
-  return found;
-}
-
-describe('athlete anatomy v2', () => {
-  it('has continuous fitted surfaces, real suit anatomy and distinct gloves', () => {
-    const a = new Athlete();
-    for (const name of [
-      'suit-chest-and-back', 'suit-seat', 'deltoid-cap', 'glove-finger-0',
-      'trapezius-shoulder-transition', 'helmet-shell', 'continuous-goggle-lens',
-      'anatomical-nose', 'helmet-chinstrap'
-    ]) expect(a.root.getObjectByName(name), name).toBeTruthy();
-    const torso = a.root.getObjectByName('suit-chest-and-back') as T.Mesh;
-    const geo = torso.geometry;
-    expect(geo.getAttribute('position').count).toBeGreaterThan(1500);
-    const normal = geo.getAttribute('normal');
-    for (let i = 0; i < normal.count; i++) {
-      const v = new T.Vector3().fromBufferAttribute(normal, i);
-      expect(Number.isFinite(v.x + v.y + v.z)).toBe(true);
-      expect(v.length()).toBeCloseTo(1, 3);
+function skins(a:Athlete) { const result:T.SkinnedMesh[]=[];a.root.traverse(o=>{if(o instanceof T.SkinnedMesh)result.push(o)});return result; }
+describe('GLB athlete',()=>{
+ it('loads a weighted continuous suit and a complete armature, without procedural limb pieces',()=>{
+  const a=new Athlete(),suit=a.root.getObjectByName('AthleteSuit') as T.SkinnedMesh;
+  expect(suit).toBeInstanceOf(T.SkinnedMesh);
+  expect(suit.skeleton.bones.length).toBe(19);
+  expect(a.root.getObjectByName('deltoid-cap')).toBeUndefined();
+  for(const mesh of skins(a)){
+   const w=mesh.geometry.getAttribute('skinWeight'),j=mesh.geometry.getAttribute('skinIndex'),n=mesh.geometry.getAttribute('normal');
+   for(let i=0;i<w.count;i++){
+    expect(w.getX(i)+w.getY(i)+w.getZ(i)+w.getW(i)).toBeCloseTo(1,5);
+    for(let k=0;k<4;k++)expect(j.getComponent(i,k)).toBeLessThan(mesh.skeleton.bones.length);
+    expect(Math.hypot(n.getX(i),n.getY(i),n.getZ(i))).toBeCloseTo(1,4);
+   }
+  }
+ });
+ it('keeps GPU skin data stable and every deformed vertex finite through the full motion',()=>{
+  const a=new Athlete(),meshes=skins(a),ids=meshes.map(m=>m.geometry.uuid),v=new T.Vector3();
+  for(const [e,t,l] of [[0,0,0],[.4,0,0],[1,.2,0],[1,.5,0],[1,1,0],[1,3,1]]){
+   a.pose(e,t,l);a.root.updateMatrixWorld(true);
+   for(const mesh of meshes){
+    for(let i=0;i<mesh.geometry.getAttribute('position').count;i+=13){
+     mesh.getVertexPosition(i,v);expect(Number.isFinite(v.x+v.y+v.z)).toBe(true);
+     expect(v.length()).toBeLessThan(3);
     }
-  });
-
-  it('builds a stable body across a full range of animated poses', () => {
-    const athlete = new Athlete();
-    const meshes = bodyMeshes(athlete);
-    expect(meshes.length).toBeGreaterThan(40);
-    const initialGeometryIds = meshes.map(m => m.geometry.uuid);
-    for (const [e, t, c] of [[0, 0, 0], [.25, 0, 0], [1, .5, 0],
-      [1, 1.0, 0], [1, 3, 1]] as const) {
-      athlete.pose(e, t, c);
-      athlete.root.updateMatrixWorld(true);
-      for (const mesh of bodyMeshes(athlete)) {
-        const position = mesh.geometry.getAttribute('position');
-        for (let i = 0; i < position.count; i++) {
-          const x = position.getX(i), y = position.getY(i), z = position.getZ(i);
-          expect(Number.isFinite(x+y+z)).toBe(true);
-        }
-      }
-      for (const leg of athlete.legs) {
-        const hip=leg.hip.getWorldPosition(new T.Vector3());
-        const knee=leg.knee.getWorldPosition(new T.Vector3());
-        const ankle=leg.ankle.getWorldPosition(new T.Vector3());
-        expect(hip.distanceTo(knee)).toBeCloseTo(dimensions.thigh, 9);
-        expect(knee.distanceTo(ankle)).toBeCloseTo(dimensions.shin, 9);
-      }
-    }
-    expect(bodyMeshes(athlete).map(m=>m.geometry.uuid)).toEqual(initialGeometryIds);
-  });
+   }
+  }
+  expect(meshes.map(m=>m.geometry.uuid)).toEqual(ids);
+ });
+ it('puts armature joint heads exactly on solved hip, knee and ankle pivots',()=>{
+  const a=new Athlete(),v=new T.Vector3(),w=new T.Vector3();
+  for(let i=0;i<=100;i++){
+   a.pose(1,i/100,0);a.root.updateMatrixWorld(true);
+   for(const [index,suffix] of ['L','R'].entries())for(const [bone,joint] of [['thigh','hip'],['shin','knee'],['ankle','ankle']] as const){
+    const target=a.legs[index][joint];const b=a.root.getObjectByName(bone+'_'+suffix)!;
+    expect(b.getWorldPosition(v).distanceTo(target.getWorldPosition(w))).toBeLessThan(1e-6);
+   }
+  }
+ });
 });

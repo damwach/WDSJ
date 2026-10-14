@@ -1,3 +1,4 @@
+import { loadAthleteAsset } from './athlete/skin';
 import './style.css';
 import { Simulation, FixedClock, DT } from './physics/simulation';
 import { GestureInput } from './input/gesture';
@@ -115,9 +116,9 @@ function startApp() {
     },
   } });
 }
-try { startApp(); } catch (error) {
+loadAthleteAsset().then(startApp).catch(error => {
   const box = el('fatal-error');
   box.hidden = false;
-  box.textContent = 'Nie udało się uruchomić grafiki 3D. Sprawdź, czy przeglądarka ma włączoną akcelerację sprzętową, i odśwież stronę.';
+  box.textContent = 'Nie udało się uruchomić grafiki 3D lub wczytać modelu zawodnika. Sprawdź, czy przeglądarka ma włączoną akcelerację sprzętową, i odśwież stronę.';
   console.error(error);
-}
+});

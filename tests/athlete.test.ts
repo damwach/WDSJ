@@ -31,13 +31,13 @@ describe('athlete anatomical rig', () => {
   it('has a compact tuck, rises in extension and opens a symmetric V in flight', () => {
     const athlete = new Athlete();
     athlete.root.updateMatrixWorld(true);
-    const tuckHeight = new T.Box3().setFromObject(athlete.root).max.y;
+    const tuckHeight = new T.Box3().setFromObject(athlete.root, true).max.y;
     expect(tuckHeight).toBeGreaterThan(.9);
     expect(tuckHeight).toBeLessThan(1.2);
     const tuckPelvis = athlete.pelvis.position.y;
     athlete.pose(1, 0, 0);
     expect(athlete.pelvis.position.y - tuckPelvis).toBeGreaterThan(.3);
-    const extendedHeight = new T.Box3().setFromObject(athlete.root).max.y;
+    const extendedHeight = new T.Box3().setFromObject(athlete.root, true).max.y;
     // Full leg extension still keeps the trunk forward, not fully standing.
     expect(extendedHeight).toBeGreaterThan(1.55);
     expect(extendedHeight).toBeLessThan(1.75);

@@ -1,0 +1,55 @@
+{
+  "baselineCommit": "2d2e4fb379df09547276ce45a5f1936ebcd825a2",
+  "scenario": "demo, calm air, 2000 fixed steps at 120 Hz",
+  "firstDifferentStep": 753,
+  "firstDifferentPhase": "flight",
+  "equalPrefixSteps": 752,
+  "maximumAbsoluteDifferences": {
+    "x": 0.05385091111779161,
+    "y": 0.18352821280902987,
+    "pitch": 0.00328685678222973,
+    "roll": 0,
+    "extension": 0.0
+  },
+  "beforeFirstGroundContact": {
+    "step": 1190,
+    "x": 97.63863556214174,
+    "y": -54.92676632107405,
+    "phase": "landed"
+  },
+  "afterFirstGroundContact": {
+    "step": 1190,
+    "x": 97.60328544936557,
+    "y": -54.89857015481007,
+    "phase": "landed"
+  },
+  "explanation": "Shared flight joint targets changed thigh -0.86 -> -1.04 rad and shin -1.10 -> -1.18 rad. COM follows the same pose, so flight/contact change physically. No solver, forces, aero coefficients, ski or binding parameters changed. Renderer-only phase before joint target change was byte-identical over 2000 steps.",
+  "beforeSkiRanges": {
+    "heelAngleRad": [
+      0,
+      0.21438609644315754
+    ],
+    "rodLengthM": [
+      0.024413111231467423,
+      0.07499999999999998
+    ],
+    "heelRiseM": [
+      0,
+      0.05492520304390348
+    ]
+  },
+  "afterSkiRanges": {
+    "heelAngleRad": [
+      0,
+      0.21438609644315754
+    ],
+    "rodLengthM": [
+      0.024413111231467423,
+      0.07499999999999998
+    ],
+    "heelRiseM": [
+      0,
+      0.05492520304390348
+    ]
+  }
+}

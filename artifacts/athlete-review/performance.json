@@ -1,0 +1,8 @@
+{
+  "poseCpuMilliseconds": 0.09380000000074505,
+  "samples": 1000,
+  "skinnedMeshes": 22,
+  "exportedVertices": 33466,
+  "triangles": 65792,
+  "environment": "headless Chromium / SwiftShader in cloud; CPU pose timing only, not hardware FPS"
+}

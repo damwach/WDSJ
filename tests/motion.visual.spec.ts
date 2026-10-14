@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { hill } from '../src/world/hill';
-import { dimensions } from '../src/athlete/rig';
+import { dimensions } from '../src/athlete/pose';
 
 function collectErrors(page: Page) {
   const errors: string[] = [];
@@ -99,17 +99,29 @@ test('portrait overview keeps the hill and camera controls visible', async ({ pa
 
 test('two buttons independently trigger takeoff without a drag gesture', async ({ page }) => {
   const errors=collectErrors(page);
+  // Advance application frames explicitly: GPU/IPC wall time must not move
+  // the skier off the table between the two synthetic button assertions.
+  // The native mouse-chord test below still exercises real browser scheduling.
+  await page.addInitScript(() => {
+    let next: FrameRequestCallback | undefined;
+    window.requestAnimationFrame = callback => { next=callback; return 1; };
+    (window as any).takeoffTestFrame = (time:number) => {
+      const callback=next; next=undefined; callback?.(time);
+    };
+  });
   await page.goto('http://localhost:5173');
   await page.waitForFunction(()=>Boolean((window as any).SKYLIFT));
   await page.evaluate(()=>{const a=(window as any).SKYLIFT;a.reset();a.sim.x=-6;});
   await page.locator('#scene').dispatchEvent('pointermove',{buttons:3,movementY:-70,movementX:30});
-  await page.waitForTimeout(40);
+  await page.evaluate(()=>(window as any).takeoffTestFrame(1000));
   expect(await page.evaluate(()=>(window as any).SKYLIFT.sim.takeoffClicked)).toBe(false);
   await page.locator('#scene').dispatchEvent('mousedown',{button:0,buttons:1,timeStamp:1000});
-  await expect.poll(()=>page.evaluate(()=>(window as any).SKYLIFT.sim.takeoffLegTimes[0])).not.toBeNull();
+  await page.evaluate(()=>(window as any).takeoffTestFrame(1016));
+  expect(await page.evaluate(()=>(window as any).SKYLIFT.sim.takeoffLegTimes[0])).not.toBeNull();
   expect(await page.evaluate(()=>(window as any).SKYLIFT.sim.takeoffLegTimes[1])).toBeNull();
   await page.locator('#scene').dispatchEvent('mousedown',{button:2,buttons:3,timeStamp:1030});
-  await expect.poll(()=>page.evaluate(()=>(window as any).SKYLIFT.sim.takeoffPressGapMs)).not.toBeNull();
+  await page.evaluate(()=>(window as any).takeoffTestFrame(1046));
+  expect(await page.evaluate(()=>(window as any).SKYLIFT.sim.takeoffPressGapMs)).not.toBeNull();
   expect(await page.evaluate(()=>(window as any).SKYLIFT.sim.target)).toBe(1);
   expect(await page.evaluate(()=>(window as any).SKYLIFT.sim.eccentricity)).toBe(0);
   expect(errors).toEqual([]);
