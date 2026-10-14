@@ -1,11 +1,15 @@
 export interface Gesture { up:number; side:number; duration:number }
 export class GestureInput {
   private queue:Gesture[]=[];
+  private clicks=0;
   private motion:{up:number;side:number}[]=[];
   private lastTime:number|null=null;
   constructor(canvas:HTMLCanvasElement){
     canvas.addEventListener('contextmenu',event=>event.preventDefault());
-    canvas.addEventListener('pointerdown',event=>{if((event.buttons&3)===3)this.lastTime=event.timeStamp;});
+    canvas.addEventListener('pointerdown',event=>{
+      if(event.button===0)this.clicks++;
+      if((event.buttons&3)===3)this.lastTime=event.timeStamp;
+    });
     canvas.addEventListener('pointermove',event=>{
       this.motion.push({up:-event.movementY,side:event.movementX});
       if((event.buttons&3)!==3){this.lastTime=null;return;}
@@ -19,7 +23,8 @@ export class GestureInput {
     window.addEventListener('pointerup',()=>{this.lastTime=null});
     window.addEventListener('blur',()=>this.clear());
   }
+  consumeClicks(){const clicks=this.clicks;this.clicks=0;return clicks;}
   consume(){return this.queue.splice(0)}
   consumeMotion(){return this.motion.splice(0)}
-  clear(){this.queue=[];this.motion=[];this.lastTime=null}
+  clear(){this.queue=[];this.motion=[];this.lastTime=null;this.clicks=0}
 }
