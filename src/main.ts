@@ -74,13 +74,14 @@ function startApp() {
     el('distance').innerHTML = `${(completed?sim.resultDistance:sim.x>0?distanceAt(sim.x):inrunDistance(sim.x)).toFixed(1)} <small>m</small>`;
     el('extension').style.width = `${sim.extension * 100}%`;
     el('extension-value').textContent = `${Math.round(sim.extension * 100)}%`;
-    const windowOpen = sim.x > -8 && sim.phase === 'inrun';
+    const windowOpen = sim.x > -8 && sim.phase === 'inrun' && !sim.takeoffClicked;
     document.body.dataset.window = windowOpen ? 'takeoff' : '';
     el('notice').textContent = sim.phase === 'ready' ? 'Obejrzyj skocznię lub rozpocznij trening'
       : windowOpen ? 'TERAZ · kliknij lewym przyciskiem, aby wybić się'
+      : sim.phase === 'inrun' && sim.takeoffClicked ? 'Wybicie trwa · praca nóg i reakcja podłoża'
       : sim.phase === 'fallen' ? `Upadek przy ${sim.resultDistance.toFixed(1)} m · kontakt ${sim.impact.toFixed(1)} m/s · R, aby powtórzyć`
       : sim.phase === 'landed' ? `Lądowanie ${sim.resultDistance.toFixed(1)} m · kontakt ${sim.impact.toFixed(1)} m/s · R, aby powtórzyć`
-      : inAir ? 'Lot · prowadź sylwetkę pionowym ruchem myszy'
+      : inAir ? sim.takeoffClickX===null ? 'Lot · bez aktywnego wybicia' : `Wybicie ${(-sim.takeoffClickX).toFixed(1)} m przed progiem · impuls ${Math.round(sim.takeoffImpulse)} N·s · prowadź sylwetkę ↑↓`
       : sim.demo ? 'Pokaz techniki · automatyczne wybicie' : 'Zbliżasz się do progu · przygotuj wybicie';
   }
   function frame(time: number) {
