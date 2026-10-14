@@ -6,7 +6,11 @@ export class GestureInput {
   private lastTime:number|null=null;
   constructor(canvas:HTMLCanvasElement){
     canvas.addEventListener('contextmenu',event=>event.preventDefault());
-    canvas.addEventListener('pointerdown',event=>{
+    // PointerEvent 'pointerdown' is only fired for the first depressed mouse
+    // button; pressing right while holding left does NOT dispatch a second
+    // pointerdown. MouseEvent 'mousedown' fires once for EACH button, so it
+    // preserves both independent leg signals during chorded presses.
+    canvas.addEventListener('mousedown',event=>{
       if(event.button===0||event.button===2)
         this.presses.push({side:event.button===0?'left':'right',timeStamp:event.timeStamp});
       if((event.buttons&3)===3)this.lastTime=event.timeStamp;
